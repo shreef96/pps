@@ -60,6 +60,16 @@ th{color:var(--mut);font-weight:600;background:var(--mist)}
 .mini:hover{border-color:var(--navy)}
 .empty{color:var(--mut);padding:18px;text-align:center}
 .ok{background:#e6f5e4;color:#1f5d1b;border-radius:10px;padding:10px 14px;margin-top:12px}
+.tabs{display:flex;gap:6px;border-bottom:2px solid var(--line);margin-bottom:8px}
+.tabs button{background:none;border:0;padding:12px 20px;font-weight:600;color:var(--mut);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}
+.tabs button.on{color:var(--navy);border-bottom-color:var(--navy)}
+dialog{border:0;border-radius:14px;padding:24px;width:92%;max-width:440px;color:var(--txt)}
+dialog::backdrop{background:rgba(10,35,80,.55)}
+dialog h4{font-size:1.2rem;color:var(--ink)}
+.row2{display:flex;gap:10px;margin-top:22px}.row2 .btn{margin:0}.row2 .gh{background:#fff;color:var(--txt);border:1.5px solid var(--line)}.row2 .gh:hover{background:var(--mist)}
+.chip{display:inline-flex;align-items:center;gap:6px;margin:2px 0 2px 6px}
+.x{background:none;border:0;color:#a11d1d;cursor:pointer;font-size:1rem;line-height:1;padding:0 2px}
+.mini.dg{color:#a11d1d}
 @media(max-width:820px){.login{grid-template-columns:1fr}.brand{padding:32px 24px}.brand img{width:140px}.brand h1{font-size:1.4rem;margin-top:12px}.brand p{display:none}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -102,35 +112,75 @@ th{color:var(--mut);font-weight:600;background:var(--mist)}
     <span id="who"></span><button id="out">خروج</button>
   </header>
   <main>
-    <div class="stats" id="stats"></div>
+    <nav class="tabs"><button data-t="home" class="on">نظرة عامة</button><button data-t="users">المستخدمين</button><button data-t="classes">الفصول</button></nav>
 
-    <h3>إضافة مستخدم</h3>
-    <form class="panel add" id="addForm">
-      <div><label>الاسم بالكامل</label><input name="fullName" required></div>
-      <div><label>اسم المستخدم</label><input name="username" dir="ltr" autocapitalize="none" required></div>
-      <div><label>كلمة السر</label><input name="password" dir="ltr" minlength="6" required></div>
-      <div><label>الدور</label>
-        <select name="role"><option value="teacher">مدرس</option><option value="student">طالب</option><option value="admin">أدمن</option></select></div>
-      <div><label>الموبايل (اختياري)</label><input name="phone" dir="ltr"></div>
-      <button class="btn" type="submit">إضافة</button>
-    </form>
-    <div id="amsg"></div>
+    <div id="t-home">
+      <div class="stats" id="stats"></div>
+      <h3>آخر النشاط</h3>
+      <div class="panel tw"><table>
+        <thead><tr><th>الوقت</th><th>الدور</th><th>العملية</th><th>التفاصيل</th></tr></thead>
+        <tbody id="logs"></tbody></table></div>
+    </div>
 
-    <h3>المستخدمين</h3>
-    <div class="panel tw"><table>
-      <thead><tr><th>الاسم</th><th>اسم المستخدم</th><th>الدور</th><th>الحالة</th><th>آخر دخول</th><th></th></tr></thead>
-      <tbody id="users"></tbody></table></div>
+    <div id="t-users" class="hide">
+      <h3>إضافة مستخدم</h3>
+      <form class="panel add" id="addForm">
+        <div><label>الاسم بالكامل</label><input name="fullName" required></div>
+        <div><label>اسم المستخدم</label><input name="username" dir="ltr" autocapitalize="none" required></div>
+        <div><label>كلمة السر</label><input name="password" dir="ltr" minlength="6" required></div>
+        <div><label>الدور</label>
+          <select name="role"><option value="teacher">مدرس</option><option value="student">طالب</option><option value="admin">أدمن</option></select></div>
+        <div><label>الموبايل (اختياري)</label><input name="phone" dir="ltr"></div>
+        <button class="btn" type="submit">إضافة</button>
+      </form>
+      <div id="amsg"></div>
+      <h3>المستخدمين</h3>
+      <div class="panel tw"><table>
+        <thead><tr><th>الاسم</th><th>اسم المستخدم</th><th>الدور</th><th>الفصل</th><th>الحالة</th><th>آخر دخول</th><th></th></tr></thead>
+        <tbody id="users"></tbody></table></div>
+    </div>
 
-    <h3>آخر النشاط</h3>
-    <div class="panel tw"><table>
-      <thead><tr><th>الوقت</th><th>الدور</th><th>العملية</th><th>التفاصيل</th></tr></thead>
-      <tbody id="logs"></tbody></table></div>
+    <div id="t-classes" class="hide">
+      <h3>إضافة فصل</h3>
+      <form class="panel add" id="classForm">
+        <div><label>الصف</label><select name="grade" id="cGrade"></select></div>
+        <div><label>اسم الفصل</label><input name="cname" placeholder="مثال: 1 أو أ" required></div>
+        <div><label>العام الدراسي</label><input name="year" value="2026/2027" dir="ltr"></div>
+        <button class="btn" type="submit">إضافة</button>
+      </form>
+      <div id="cmsg"></div>
+      <h3>الفصول</h3>
+      <div class="panel tw"><table>
+        <thead><tr><th>الصف</th><th>الفصل</th><th>الطلاب</th><th>المدرسين والمواد</th><th></th></tr></thead>
+        <tbody id="classes"></tbody></table></div>
+    </div>
   </main>
+
+  <dialog id="editDlg"><form id="editForm">
+    <h4>تعديل مستخدم</h4>
+    <input type="hidden" name="userId">
+    <label>الاسم بالكامل</label><input name="fullName" required>
+    <label>اسم المستخدم</label><input name="username" dir="ltr" autocapitalize="none" required>
+    <label>الدور</label><select name="role"><option value="teacher">مدرس</option><option value="student">طالب</option><option value="admin">أدمن</option></select>
+    <div id="clsRow"><label>الفصل</label><select name="classId"></select></div>
+    <label>الموبايل</label><input name="phone" dir="ltr">
+    <label>كلمة سر جديدة (سيبها فاضية لو مش عايز تغيّرها)</label><input name="password" dir="ltr" autocomplete="new-password">
+    <div id="eerr" class="err hide"></div>
+    <div class="row2"><button class="btn" id="esave" type="submit">حفظ التعديلات</button><button class="btn gh" id="ecancel" type="button">إلغاء</button></div>
+  </form></dialog>
+
+  <dialog id="tDlg"><form id="tForm">
+    <h4>إضافة مدرس للفصل</h4><p id="tTitle" style="color:var(--mut);margin-top:4px"></p>
+    <label>المدرس</label><select id="tSel"></select>
+    <label>المادة</label><input id="tSub" required placeholder="مثال: رياضيات">
+    <div id="terr" class="err hide"></div>
+    <div class="row2"><button class="btn" type="submit">إضافة</button><button class="btn gh" id="tcancel" type="button">إلغاء</button></div>
+  </form></dialog>
 </section>
 
 <script>
 // ضع هنا رابط الـ Web App بعد النشر (ينتهي بـ /exec)
-const API_URL = 'https://script.google.com/macros/s/AKfycbzWYQRKjZERtCL4Ujasnb_7k0Hi9YYdi1gz8hXCkKy1rNtSt03WVfb8hnDFw8-uaYUGZg/exec';
+const API_URL = 'PUT_YOUR_WEB_APP_URL_HERE';
 
 const $ = id => document.getElementById(id);
 const ROLE = {admin:'أدمن', teacher:'مدرس', student:'طالب'};
@@ -178,8 +228,21 @@ function logout(silent) {
 }
 $('out').onclick = () => logout();
 
+const STAGES = [['الابتدائي',6],['الإعدادي',3],['الثانوي',3]], ORD = ['الأول','الثاني','الثالث','الرابع','الخامس','السادس'];
+const GRADES = STAGES.flatMap(([s,n]) => ORD.slice(0,n).map(o => `الصف ${o} ${s}`));
+$('cGrade').innerHTML = GRADES.map(g => `<option>${g}</option>`).join('');
+let USERS = [], CLASSES = [], curClass = null;
+const clsLabel = id => { const c = CLASSES.find(x => x.classId === id); return c ? `${c.grade} / ${c.className}` : '—'; };
+
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  ['home','users','classes'].forEach(t => $('t-' + t).classList.toggle('hide', t !== b.dataset.t));
+});
+
 async function loadAdmin() {
-  const [s, u] = await Promise.all([api('adminStats'), api('listUsers')]);
+  const [s, u, c] = await Promise.all([api('adminStats'), api('listUsers'), api('listClasses')]);
+  if (c.ok) CLASSES = c.classes.sort((a, b) => GRADES.indexOf(a.grade) - GRADES.indexOf(b.grade) || String(a.className).localeCompare(String(b.className), 'ar'));
+  if (u.ok) USERS = u.users;
   if (s.ok) {
     const st = s.stats;
     $('stats').innerHTML = [['المدرسين',st.teachers,'g'],['الطلاب',st.students,''],['الفصول',st.classes,''],['الواجبات والامتحانات',st.assignments,''],['التسليمات',st.submissions,'r']]
@@ -187,22 +250,52 @@ async function loadAdmin() {
     $('logs').innerHTML = s.logs.length ? s.logs.map(l => `<tr><td>${fmt(l.time)}</td><td>${ROLE[l.role] || '—'}</td><td>${esc(l.action)}</td><td dir="ltr" style="text-align:start">${esc(l.details)}</td></tr>`).join('')
       : '<tr><td colspan="4" class="empty">لسه مفيش نشاط</td></tr>';
   }
-  if (u.ok) {
-    $('users').innerHTML = u.users.map(x => `<tr><td>${esc(x.fullName)}</td><td dir="ltr" style="text-align:start">${esc(x.username)}</td>
-      <td><span class="tag ${x.role}">${ROLE[x.role]}</span></td>
-      <td>${x.status === 'active' ? 'نشط' : '<span class="tag off">موقوف</span>'}</td><td>${fmt(x.lastLogin)}</td>
-      <td><button class="mini" data-id="${esc(x.userId)}" data-st="${x.status === 'active' ? 'inactive' : 'active'}">${x.status === 'active' ? 'إيقاف' : 'تفعيل'}</button></td></tr>`).join('');
-  }
+  renderUsers(); renderClasses();
 }
 
+function renderUsers() {
+  $('users').innerHTML = USERS.map(x => `<tr><td>${esc(x.fullName)}</td><td dir="ltr" style="text-align:start">${esc(x.username)}</td>
+    <td><span class="tag ${x.role}">${ROLE[x.role]}</span></td><td>${x.role === 'student' ? esc(clsLabel(x.classId)) : '—'}</td>
+    <td>${x.status === 'active' ? 'نشط' : '<span class="tag off">موقوف</span>'}</td><td>${fmt(x.lastLogin)}</td>
+    <td><button class="mini" data-act="edit" data-id="${esc(x.userId)}">تعديل</button>
+    <button class="mini" data-act="st" data-id="${esc(x.userId)}" data-st="${x.status === 'active' ? 'inactive' : 'active'}">${x.status === 'active' ? 'إيقاف' : 'تفعيل'}</button></td></tr>`).join('');
+}
+
+function renderClasses() {
+  $('classes').innerHTML = CLASSES.length ? CLASSES.map(c => `<tr><td>${esc(c.grade)}</td><td>${esc(c.className)}</td><td>${c.students}</td>
+    <td>${c.teachers.map(t => `<span class="tag teacher chip">${esc(t.name)} · ${esc(t.subject)}<button class="x" data-rm="${esc(t.id)}" aria-label="إزالة">×</button></span>`).join('') || '—'}</td>
+    <td><button class="mini" data-cid="${esc(c.classId)}" data-act="addT">إضافة مدرس</button> <button class="mini dg" data-cid="${esc(c.classId)}" data-act="del">حذف</button></td></tr>`).join('')
+    : '<tr><td colspan="5" class="empty">لسه مفيش فصول. ضيف أول فصل من النموذج اللي فوق</td></tr>';
+}
+
+/* المستخدمين */
 $('users').onclick = async e => {
   const b = e.target.closest('button[data-id]'); if (!b) return;
+  if (b.dataset.act === 'edit') return openEdit(b.dataset.id);
   b.disabled = true;
   const j = await api('setStatus', {userId: b.dataset.id, status: b.dataset.st});
   if (!j.ok) alert(j.error);
   loadAdmin();
 };
-
+const toggleCls = () => $('clsRow').classList.toggle('hide', $('editForm').role.value !== 'student');
+$('editForm').role.onchange = toggleCls;
+function openEdit(id) {
+  const u = USERS.find(x => x.userId === id), f = $('editForm');
+  f.userId.value = id; f.fullName.value = u.fullName; f.username.value = u.username; f.phone.value = u.phone || ''; f.role.value = u.role; f.password.value = '';
+  f.classId.innerHTML = '<option value="">— بدون فصل —</option>' + CLASSES.map(c => `<option value="${esc(c.classId)}">${esc(c.grade)} / ${esc(c.className)}</option>`).join('');
+  f.classId.value = u.classId || ''; toggleCls(); $('eerr').classList.add('hide'); $('editDlg').showModal();
+}
+$('ecancel').onclick = () => $('editDlg').close();
+$('editForm').onsubmit = async e => {
+  e.preventDefault();
+  const d = Object.fromEntries(new FormData(e.target)), er = $('eerr'), btn = $('esave');
+  btn.disabled = true; er.classList.add('hide');
+  let j = await api('updateUser', d);
+  if (j.ok) j = await api('setStudentClass', {userId: d.userId, classId: d.role === 'student' ? d.classId : ''});
+  btn.disabled = false;
+  if (!j.ok) { er.textContent = j.error; er.classList.remove('hide'); return; }
+  $('editDlg').close(); loadAdmin();
+};
 $('addForm').onsubmit = async e => {
   e.preventDefault();
   const f = e.target, btn = f.querySelector('button'), m = $('amsg');
@@ -211,6 +304,35 @@ $('addForm').onsubmit = async e => {
   btn.disabled = false;
   m.innerHTML = j.ok ? '<div class="ok">تمت إضافة المستخدم</div>' : `<div class="err">${esc(j.error)}</div>`;
   if (j.ok) { f.reset(); loadAdmin(); }
+};
+
+/* الفصول */
+$('classForm').onsubmit = async e => {
+  e.preventDefault();
+  const f = e.target, btn = f.querySelector('button'), m = $('cmsg');
+  btn.disabled = true; m.innerHTML = '';
+  const j = await api('addClass', Object.fromEntries(new FormData(f)));
+  btn.disabled = false;
+  m.innerHTML = j.ok ? '<div class="ok">تمت إضافة الفصل</div>' : `<div class="err">${esc(j.error)}</div>`;
+  if (j.ok) { f.cname.value = ''; loadAdmin(); }
+};
+$('classes').onclick = async e => {
+  const rm = e.target.closest('[data-rm]');
+  if (rm) { if (confirm('إزالة المدرس من الفصل؟')) { const j = await api('removeTeacher', {id: rm.dataset.rm}); if (!j.ok) alert(j.error); loadAdmin(); } return; }
+  const b = e.target.closest('button[data-cid]'); if (!b) return;
+  if (b.dataset.act === 'del') { if (confirm('حذف الفصل؟')) { const j = await api('deleteClass', {classId: b.dataset.cid}); if (!j.ok) alert(j.error); loadAdmin(); } return; }
+  const ts = USERS.filter(u => u.role === 'teacher' && u.status === 'active');
+  if (!ts.length) return alert('ضيف مدرسين الأول من تبويب المستخدمين');
+  curClass = b.dataset.cid; $('tTitle').textContent = clsLabel(curClass);
+  $('tSel').innerHTML = ts.map(u => `<option value="${esc(u.userId)}">${esc(u.fullName)}</option>`).join('');
+  $('tSub').value = ''; $('terr').classList.add('hide'); $('tDlg').showModal();
+};
+$('tcancel').onclick = () => $('tDlg').close();
+$('tForm').onsubmit = async e => {
+  e.preventDefault();
+  const j = await api('assignTeacher', {teacherUserId: $('tSel').value, classId: curClass, subject: $('tSub').value});
+  if (!j.ok) { $('terr').textContent = j.error; $('terr').classList.remove('hide'); return; }
+  $('tDlg').close(); loadAdmin();
 };
 
 // استرجاع الجلسة عند فتح الصفحة
