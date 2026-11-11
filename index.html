@@ -367,13 +367,13 @@ document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
 
 async function loadAdmin() {
   const [s, u, c] = await Promise.all([api('adminStats'), api('listUsers'), api('listClasses')]);
-  if (c.ok) CLASSES = c.classes.sort((a, b) => GRADES.indexOf(a.grade) - GRADES.indexOf(b.grade) || String(a.className).localeCompare(String(b.className), 'ar'));
-  if (u.ok) USERS = u.users.map(x => ({...x, perms: x.perms ? String(x.perms).split(',') : []}));
+  if (c.ok) CLASSES = (c.classes || []).map(x => ({...x, teachers: x.teachers || []})).sort((a, b) => GRADES.indexOf(a.grade) - GRADES.indexOf(b.grade) || String(a.className).localeCompare(String(b.className), 'ar'));
+  if (u.ok) USERS = (u.users || []).map(x => ({...x, perms: x.perms ? String(x.perms).split(',') : []}));
   if (s.ok) {
     const st = s.stats;
     $('stats').innerHTML = [['المدرسين',st.teachers,'g'],['الطلاب',st.students,''],['الفصول',st.classes,''],['الواجبات والامتحانات',st.assignments,''],['التسليمات',st.submissions,'r']]
       .map(x => `<div class="stat ${x[2]}"><span>${x[0]}</span><strong>${x[1]}</strong></div>`).join('');
-    $('logs').innerHTML = s.logs.length ? s.logs.map(l => `<tr><td>${fmt(l.time)}</td><td>${ROLE[l.role] || '—'}</td><td>${esc(l.action)}</td><td dir="ltr" style="text-align:start">${esc(l.details)}</td></tr>`).join('')
+    s.logs = s.logs || []; $('logs').innerHTML = s.logs.length ? s.logs.map(l => `<tr><td>${fmt(l.time)}</td><td>${ROLE[l.role] || '—'}</td><td>${esc(l.action)}</td><td dir="ltr" style="text-align:start">${esc(l.details)}</td></tr>`).join('')
       : '<tr><td colspan="4" class="empty">لسه مفيش نشاط</td></tr>';
   }
   fillSel(); renderUsers(); renderClasses();
@@ -546,7 +546,7 @@ async function loadTeacher(user) {
   $('tvWho').textContent = user.fullName; $('tvCls').innerHTML = '<div class="empty">جاري التحميل...</div>';
   const j = await api('myClasses');
   if (!j.ok) { $('tvCls').innerHTML = `<div class="err">${esc(j.error)}</div>`; return; }
-  TCLASSES = j.classes; $('tvCls').innerHTML = j.classes.length ? j.classes.map(c => `<div class="panel" style="margin-bottom:16px">
+  j.classes = (j.classes || []).map(c => ({...c, subjects: c.subjects || [], students: c.students || []})); TCLASSES = j.classes; $('tvCls').innerHTML = j.classes.length ? j.classes.map(c => `<div class="panel" style="margin-bottom:16px">
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><strong style="font-size:1.1rem">${esc(c.grade)} / ${esc(c.className)}</strong>
     ${c.subjects.map(s => `<span class="tag teacher">${esc(s)}</span>`).join('')}<small>${c.students.length} طالب</small></div>
     <div class="tw"><table><thead><tr><th>#</th><th>اسم الطالب</th><th>اسم المستخدم</th></tr></thead><tbody>
@@ -568,7 +568,7 @@ async function loadWork() {
   $('wlist').innerHTML = '<div class="empty">جاري التحميل...</div>';
   const j = await api('listMyWork');
   if (!j.ok) { $('wlist').innerHTML = `<div class="err">${esc(j.error)}</div>`; return; }
-  $('wlist').innerHTML = j.work.length ? j.work.map(w => `<div class="panel wk" style="margin-bottom:12px">
+  j.work = j.work || []; $('wlist').innerHTML = j.work.length ? j.work.map(w => `<div class="panel wk" style="margin-bottom:12px">
     <div><span class="tag ${w.type === 'exam' ? '' : 'teacher'}">${w.type === 'exam' ? 'امتحان' : 'واجب'}</span> <strong>${esc(w.title)}</strong><br>
     <small>${esc(tcLabel(w.classId))} · الدرجة ${esc(w.maxScore)}${w.type === 'exam' ? ` · ${w.qCount} سؤال${Number(w.duration) ? ' · ' + w.duration + ' دقيقة' : ''}` : ''}${w.dueDate ? ' · التسليم ' + fmt(w.dueDate) : ''}</small></div>
     <div><small>${w.subs} تسليم${w.subs ? ` (${w.graded} متصحح)` : ''}</small> <button class="mini" data-subs="${esc(w.assignId)}">التسليمات</button> <button class="mini dg" data-del="${esc(w.assignId)}">حذف</button></div></div>`).join('')
@@ -592,7 +592,7 @@ function renderQ() {
   $('qbox').innerHTML = Q.map((q, i) => {
     let body = '';
     if (q.type === 'mcq' || q.type === 'multi') {
-      body = q.options.map((o, k) => `<div class="opt"><input type="${q.type === 'mcq' ? 'radio' : 'checkbox'}" name="c${i}" data-f="correct" data-k="${k}" ${q.correct.includes(k) ? 'checked' : ''} title="الإجابة الصحيحة">
+      body = q.options.map((o, k) => `<div class="opt"><input type="${q.type === 'mcq' ? 'radio' : 'checkbox'}" name="c${i}" data-f="correct" data-k="${k}" ${(q.correct || []).includes(k) ? 'checked' : ''} title="الإجابة الصحيحة">
         <input type="text" data-f="opt" data-k="${k}" value="${esc(o)}" placeholder="اختيار ${k + 1}" dir="${q.dir}"><button type="button" class="x" data-act="delopt" data-k="${k}" aria-label="حذف الاختيار">×</button></div>`).join('')
         + `<button type="button" class="mini" style="margin-top:8px" data-act="addopt">+ اختيار</button> <small>علّم على الإجابة الصحيحة</small>`;
     } else if (q.type === 'tf') {
@@ -685,7 +685,7 @@ async function loadFollow(fresh) {
   try {
     const j = await api('adminWork', {fresh: !!fresh});
     if (!j.ok) throw new Error(j.error);
-    AW = j; const cur = $('awTeacher').value;
+    AW = j; AW.work = AW.work || []; AW.teachers = AW.teachers || []; const cur = $('awTeacher').value;
     $('awTeacher').innerHTML = '<option value="">كل المدرسين</option>' + j.teachers.map(t => `<option value="${esc(t.userId)}">${esc(t.name)}</option>`).join(''); $('awTeacher').value = cur;
     renderFollow();
   } catch (x) { $('awErr').innerHTML = `<div class="err">${esc(x.message)}</div>`; }
@@ -737,13 +737,13 @@ function qView(q, i, o) {
   o = o || {}; const has = o.has, a = o.ans; let body = '';
   if (q.type === 'mcq' || q.type === 'multi') {
     const sel = a === undefined ? [] : (Array.isArray(a) ? a.map(Number) : [Number(a)]);
-    body = q.options.map((t, k) => `<div class="ov ${q.correct.includes(k) ? 'okopt' : ''}">${q.correct.includes(k) ? '✓' : '○'} ${esc(t)}${has && sel.includes(k) ? ' <span class="tag">اختيار الطالب</span>' : ''}</div>`).join('');
+    body = (q.options || []).map((t, k) => `<div class="ov ${(q.correct || []).includes(k) ? 'okopt' : ''}">${(q.correct || []).includes(k) ? '✓' : '○'} ${esc(t)}${has && sel.includes(k) ? ' <span class="tag">اختيار الطالب</span>' : ''}</div>`).join('');
   } else if (q.type === 'tf') {
     body = `<div class="ov okopt">✓ ${q.answer === 'true' ? 'صح' : 'غلط'}</div>` + (has ? `<div class="ov">إجابة الطالب: ${a === 'true' ? 'صح' : a === 'false' ? 'غلط' : '—'}</div>` : '');
   } else if (q.type === 'short') {
-    body = `<div class="ov okopt">الإجابات المقبولة: ${q.answers.map(esc).join(' | ')}</div>` + (has ? `<div class="ov">إجابة الطالب: ${esc(a || '—')}</div>` : '');
+    body = `<div class="ov okopt">الإجابات المقبولة: ${(q.answers || []).map(esc).join(' | ')}</div>` + (has ? `<div class="ov">إجابة الطالب: ${esc(a || '—')}</div>` : '');
   } else if (q.type === 'order') {
-    body = `<div class="ov okopt">الترتيب الصحيح: ${q.items.map((t, k) => `${k + 1}. ${esc(t)}`).join(' ← ')}</div>` + (has && Array.isArray(a) ? `<div class="ov">ترتيب الطالب: ${a.map(n => esc(q.items[n] ?? '؟')).join(' ← ')}</div>` : '');
+    body = `<div class="ov okopt">الترتيب الصحيح: ${(q.items || []).map((t, k) => `${k + 1}. ${esc(t)}`).join(' ← ')}</div>` + (has && Array.isArray(a) ? `<div class="ov">ترتيب الطالب: ${a.map(n => esc(q.items[n] ?? '؟')).join(' ← ')}</div>` : '');
   } else if (q.type === 'essay') {
     body = (q.note ? `<div class="ov okopt">إجابة نموذجية: ${esc(q.note)}</div>` : '') + (has ? `<div class="ov" style="white-space:pre-wrap">${esc(a || '—')}</div>` : '');
   } else {
@@ -778,7 +778,7 @@ async function openSubs(id) {
   SUBA = id; $('sBody').innerHTML = '<div class="empty">جاري التحميل...</div>'; if (!$('sDlg').open) $('sDlg').showModal();
   const j = await api('workSubmissions', {assignId: id});
   if (!j.ok) { $('sBody').innerHTML = `<div class="err">${esc(j.error)}</div>`; return; }
-  const c = k => j.rows.filter(r => r.status === k).length;
+  j.rows = j.rows || []; const c = k => j.rows.filter(r => r.status === k).length;
   $('sBody').innerHTML = `<h4>${esc(j.assign.title)}</h4><p style="color:var(--mut)">سلّم ${c('submitted') + c('graded')} من ${j.rows.length} · متصحح ${c('graded')} · ينتظر التصحيح ${c('submitted')}</p>
     <div class="tw"><table><thead><tr><th>الطالب</th><th>الحالة</th><th>وقت التسليم</th><th>الدرجة</th><th></th></tr></thead><tbody>
     ${j.rows.map(r => `<tr><td>${esc(r.name)}</td><td><span class="tag ${r.status === 'graded' ? 'teacher' : r.status === 'todo' ? 'off' : ''}">${STL[r.status]}</span></td><td>${r.at ? fmt(r.at) : '—'}</td>
@@ -812,7 +812,7 @@ let SW = [], EX = null, ANS = {}, exTimer = null, exEnd = 0;
 $('out3').onclick = () => logout();
 async function loadStudent(user) {
   $('svWho').textContent = user.fullName; $('svList').innerHTML = '<div class="empty">جاري التحميل...</div>';
-  try { const j = await api('myWork'); if (!j.ok) throw new Error(j.error); SW = j.work; $('svClass').textContent = j.classLabel ? 'فصلي: ' + j.classLabel : 'لسه ما اتسجلتش في فصل. كلّم شؤون الطلاب'; renderStudent(); }
+  try { const j = await api('myWork'); if (!j.ok) throw new Error(j.error); SW = j.work || []; $('svClass').textContent = j.classLabel ? 'فصلي: ' + j.classLabel : 'لسه ما اتسجلتش في فصل. كلّم شؤون الطلاب'; renderStudent(); }
   catch (x) { $('svList').innerHTML = `<div class="err">${esc(x.message)}</div>`; }
 }
 const expired = w => w.dueDate && w.dueDate < Date.now();
@@ -881,8 +881,8 @@ function orderHTML(q) {
 }
 function exQ(q, i) {
   const a = ANS[q.id]; let body = '';
-  if (q.type === 'mcq') body = q.options.map(o => `<label class="opt"><input type="radio" name="q_${q.id}" data-q="${q.id}" value="${o.i}" ${a === o.i ? 'checked' : ''}> <span dir="${q.dir}">${esc(o.t)}</span></label>`).join('');
-  else if (q.type === 'multi') body = q.options.map(o => `<label class="opt"><input type="checkbox" data-q="${q.id}" value="${o.i}" ${(a || []).includes(o.i) ? 'checked' : ''}> <span dir="${q.dir}">${esc(o.t)}</span></label>`).join('') + '<small>ممكن أكتر من إجابة</small>';
+  if (q.type === 'mcq') body = (q.options || []).map(o => `<label class="opt"><input type="radio" name="q_${q.id}" data-q="${q.id}" value="${o.i}" ${a === o.i ? 'checked' : ''}> <span dir="${q.dir}">${esc(o.t)}</span></label>`).join('');
+  else if (q.type === 'multi') body = (q.options || []).map(o => `<label class="opt"><input type="checkbox" data-q="${q.id}" value="${o.i}" ${(a || []).includes(o.i) ? 'checked' : ''}> <span dir="${q.dir}">${esc(o.t)}</span></label>`).join('') + '<small>ممكن أكتر من إجابة</small>';
   else if (q.type === 'tf') body = ['true', 'false'].map(v => `<label class="opt"><input type="radio" name="q_${q.id}" data-q="${q.id}" value="${v}" ${a === v ? 'checked' : ''}> ${v === 'true' ? 'صح' : 'غلط'}</label>`).join('');
   else if (q.type === 'short') body = `<input type="text" data-q="${q.id}" dir="${q.dir}" value="${esc(a || '')}" placeholder="اكتب إجابتك">`;
   else if (q.type === 'order') body = orderHTML(q);
@@ -920,6 +920,15 @@ async function submitExam(auto) {
     $('swDlg').showModal(); $('swClose2').onclick = () => { $('swDlg').close(); loadStudent(SU); };
   } catch (x) { EX.busy = false; $('exSubmit').disabled = false; $('exErr').textContent = x.message; $('exErr').classList.remove('hide'); }
 }
+
+/* شريط أخطاء واضح لو حصل خطأ غير متوقع في الصفحة (بيساعد في تحديد المشكلة بالظبط) */
+function showErr(msg) {
+  let b = document.getElementById('gerr');
+  if (!b) { b = document.createElement('div'); b.id = 'gerr'; b.style.cssText = 'position:fixed;inset-inline:12px;bottom:12px;z-index:99999;background:#fdecec;color:#a11d1d;border:1.5px solid #d92b2b;border-radius:10px;padding:10px 14px;font-size:.9rem;direction:ltr;text-align:left;cursor:pointer'; b.title = 'اضغط للإخفاء'; b.onclick = () => b.remove(); document.body.appendChild(b); }
+  b.textContent = 'Error: ' + msg + '  (click to dismiss)';
+}
+window.addEventListener('error', e => { if (e.message) showErr(e.message + (e.lineno ? ' [line ' + e.lineno + ']' : '')); });
+window.addEventListener('unhandledrejection', e => showErr(String((e.reason && e.reason.stack) || (e.reason && e.reason.message) || e.reason).split('\n').slice(0, 2).join(' | ')));
 
 // استرجاع الجلسة عند فتح الصفحة
 (async () => {
