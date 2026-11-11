@@ -90,6 +90,11 @@ textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radi
 .chk{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:4px}
 .qi{display:flex;gap:10px;align-items:center;margin-top:8px;font-size:.9rem;flex-wrap:wrap}.qi input{width:auto;padding:6px;border:0;background:none}
 .nope{display:none!important}.tag.staff{background:#ece4ff;color:#4b2a9a}.presets{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}
+.ov{padding:6px 10px;border-radius:8px;margin-top:6px}.okopt{background:#e6f5e4}
+.exbar{position:sticky;top:-24px;background:#fff;padding:10px 0;display:flex;justify-content:space-between;align-items:center;z-index:2;border-bottom:1px solid var(--line)}
+.ordli{display:flex;gap:8px;align-items:center;padding:8px 10px;border:1.5px solid var(--line);border-radius:10px;margin-top:6px;background:#fff}
+.stu-card{cursor:pointer}.stu-card:hover{border-color:var(--navy)}
+.lnk{display:inline-block;margin:8px 0;padding:9px 16px;border:1.5px solid var(--navy);border-radius:10px;color:var(--navy);text-decoration:none;font-weight:600}
 @media(max-width:820px){.login{grid-template-columns:1fr}.brand{padding:32px 24px}.brand img{width:140px}.brand h1{font-size:1.4rem;margin-top:12px}.brand p{display:none}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -197,12 +202,9 @@ textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radi
         <div><label>بحث</label><input id="awQ" placeholder="عنوان أو فصل"></div>
       </div>
       <div class="panel tw"><table style="min-width:900px">
-        <thead><tr><th>النوع</th><th>العنوان</th><th>المدرس</th><th>الفصل</th><th>تاريخ النشر</th><th>موعد التسليم</th><th>سلّموا</th><th>متصحح</th><th>المتوسط</th></tr></thead>
+        <thead><tr><th>النوع</th><th>العنوان</th><th>المدرس</th><th>الفصل</th><th>تاريخ النشر</th><th>موعد التسليم</th><th>سلّموا</th><th>متصحح</th><th>المتوسط</th><th></th></tr></thead>
         <tbody id="awRows"></tbody></table></div>
-      <h3>آخر 100 عملية</h3>
-      <div class="panel tw"><table>
-        <thead><tr><th>الوقت</th><th>المستخدم</th><th>الدور</th><th>العملية</th><th>التفاصيل</th></tr></thead>
-        <tbody id="awLogs"></tbody></table></div>
+      
     </div>
   </main>
 
@@ -270,13 +272,33 @@ textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radi
   </form></dialog>
 </section>
 
+
+<section id="studentView" class="hide">
+  <header class="top"><img src="logo.png" alt=""><b>بوابة الطالب</b><span class="sp"></span><span id="svWho"></span><button id="out3">خروج</button></header>
+  <main>
+    <p id="svClass" style="color:var(--mut)"></p>
+    <div id="svList"></div>
+  </main>
+  <dialog id="swDlg" class="xl"><div id="swBody"></div></dialog>
+  <dialog id="exDlg" class="xl">
+    <div class="exbar"><b id="exTitle"></b><b id="exTimer" style="color:var(--red)"></b></div>
+    <div id="exQs"></div>
+    <div id="exErr" class="err hide"></div>
+    <div class="row2"><button class="btn" id="exSubmit" type="button">تسليم الامتحان</button></div>
+  </dialog>
+</section>
+
+<dialog id="sDlg" class="xl"><div id="sBody"></div><div class="row2"><button class="btn gh" id="sClose" type="button">إغلاق</button></div></dialog>
+<dialog id="gDlg" class="xl"><div id="gBody"></div></dialog>
+<dialog id="vDlg" class="xl"><div id="vBody"></div><div class="row2"><button class="btn gh" id="vClose" type="button">إغلاق</button></div></dialog>
+
 <script>
 // ضع هنا رابط الـ Web App بعد النشر (ينتهي بـ /exec)
 const API_URL = 'https://script.google.com/macros/s/AKfycbzWYQRKjZERtCL4Ujasnb_7k0Hi9YYdi1gz8hXCkKy1rNtSt03WVfb8hnDFw8-uaYUGZg/exec';
 
 const $ = id => document.getElementById(id);
 const ROLE = {admin:'أدمن', teacher:'مدرس', student:'طالب', staff:'موظف إدارة'};
-let token = null, ME = null;
+let token = null, ME = null, SU = null;
 try { token = sessionStorage.getItem('pps_token'); } catch (e) {}
 
 const READS = new Set(['me','adminStats','listUsers','listClasses','adminWork','myClasses','listMyWork']);
@@ -298,7 +320,7 @@ async function api(action, data) {
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt = d => { if (!d) return '—'; const t = new Date(d); return isNaN(t) ? '—' : t.toLocaleString('ar-EG', {dateStyle:'short', timeStyle:'short'}); };
 
-function show(view) { ['login','admin','teacher'].forEach(v => $(v + 'View').classList.toggle('hide', view !== v)); }
+function show(view) { ['login','admin','teacher','student'].forEach(v => $(v + 'View').classList.toggle('hide', view !== v)); }
 
 $('tg').onclick = () => { const p = $('p'), s = p.type === 'password'; p.type = s ? 'text' : 'password'; $('tg').textContent = s ? 'إخفاء' : 'إظهار'; };
 
@@ -320,7 +342,8 @@ $('loginForm').onsubmit = async e => {
 function enter(user) {
   if (user.role === 'admin' || user.role === 'staff') { ME = user; applyPerms(); show('admin'); $('who').textContent = user.fullName; loadAdmin(); }
   else if (user.role === 'teacher') { show('teacher'); loadTeacher(user); }
-  else { show('login'); const er = $('lerr'); er.textContent = 'لوحة الطالب هتتضاف في الخطوة الجاية'; er.classList.remove('hide'); }
+  else if (user.role === 'student') { SU = user; show('student'); loadStudent(user); }
+  else { show('login'); const er = $('lerr'); er.textContent = 'نوع الحساب غير مدعوم'; er.classList.remove('hide'); }
 }
 
 function logout(silent) {
@@ -548,10 +571,11 @@ async function loadWork() {
   $('wlist').innerHTML = j.work.length ? j.work.map(w => `<div class="panel wk" style="margin-bottom:12px">
     <div><span class="tag ${w.type === 'exam' ? '' : 'teacher'}">${w.type === 'exam' ? 'امتحان' : 'واجب'}</span> <strong>${esc(w.title)}</strong><br>
     <small>${esc(tcLabel(w.classId))} · الدرجة ${esc(w.maxScore)}${w.type === 'exam' ? ` · ${w.qCount} سؤال${Number(w.duration) ? ' · ' + w.duration + ' دقيقة' : ''}` : ''}${w.dueDate ? ' · التسليم ' + fmt(w.dueDate) : ''}</small></div>
-    <div><small>${w.subs} تسليم${w.subs ? ` (${w.graded} متصحح)` : ''}</small> <button class="mini dg" data-del="${esc(w.assignId)}">حذف</button></div></div>`).join('')
+    <div><small>${w.subs} تسليم${w.subs ? ` (${w.graded} متصحح)` : ''}</small> <button class="mini" data-subs="${esc(w.assignId)}">التسليمات</button> <button class="mini dg" data-del="${esc(w.assignId)}">حذف</button></div></div>`).join('')
     : '<div class="panel empty">لسه مفيش واجبات أو امتحانات. اضغط "جديد" وابدأ</div>';
 }
 $('wlist').onclick = async e => {
+  const sb = e.target.closest('[data-subs]'); if (sb) return openSubs(sb.dataset.subs);
   const b = e.target.closest('[data-del]'); if (!b || !confirm('حذف العنصر ده؟')) return;
   const j = await api('deleteWork', {assignId: b.dataset.del}); if (!j.ok) alert(j.error); loadWork();
 };
@@ -657,7 +681,7 @@ $('wForm').onsubmit = async e => {
 /* متابعة الواجبات والامتحانات (الأدمن) */
 let AW = null;
 async function loadFollow(fresh) {
-  $('awErr').innerHTML = ''; if (!AW) $('awRows').innerHTML = '<tr><td colspan="9" class="empty">جاري التحميل...</td></tr>';
+  $('awErr').innerHTML = ''; if (!AW) $('awRows').innerHTML = '<tr><td colspan="10" class="empty">جاري التحميل...</td></tr>';
   try {
     const j = await api('adminWork', {fresh: !!fresh});
     if (!j.ok) throw new Error(j.error);
@@ -672,14 +696,13 @@ function renderFollow() {
   const list = AW.work.filter(w => (!ty || w.type === ty) && (!tc || w.teacherId === tc) && (!q || (w.title + ' ' + w.classLabel + ' ' + w.teacher).toLowerCase().includes(q)));
   $('awCount').textContent = `(${list.length} من ${AW.total})`;
   $('awRows').innerHTML = list.length ? list.slice(0, 200).map(w => `<tr><td><span class="tag ${w.type === 'exam' ? '' : 'teacher'}">${w.type === 'exam' ? 'امتحان' : 'واجب'}</span></td>
-    <td>${esc(w.title)}${w.type === 'exam' ? ` <small>(${w.qCount} سؤال)</small>` : ''}</td><td>${esc(w.teacher)}</td><td>${esc(w.classLabel)}</td><td>${fmt(w.createdAt)}</td>
+    <td>${esc(w.title)}${w.hasFile ? ' 📎' : ''}${w.type === 'exam' ? ` <small>(${w.qCount} سؤال)</small>` : ''}</td><td>${esc(w.teacher)}</td><td>${esc(w.classLabel)}</td><td>${fmt(w.createdAt)}</td>
     <td>${w.dueDate ? fmt(w.dueDate) + (w.dueDate < Date.now() ? ' <span class="tag off">انتهى</span>' : '') : '—'}</td>
-    <td>${w.subs} / ${w.students}</td><td>${w.graded}</td><td>${w.avg === '' ? '—' : esc(w.avg) + ' / ' + esc(w.maxScore)}</td></tr>`).join('')
-    + (list.length > 200 ? '<tr><td colspan="9" class="empty">معروض أول 200. استخدم الفلتر أو البحث</td></tr>' : '')
-    : '<tr><td colspan="9" class="empty">مفيش نتائج</td></tr>';
+    <td>${w.subs} / ${w.students}</td><td>${w.graded}</td><td>${w.avg === '' ? '—' : esc(w.avg) + ' / ' + esc(w.maxScore)}</td><td><button class="mini" data-view="${esc(w.assignId)}">عرض</button></td></tr>`).join('')
+    + (list.length > 200 ? '<tr><td colspan="10" class="empty">معروض أول 200. استخدم الفلتر أو البحث</td></tr>' : '')
+    : '<tr><td colspan="10" class="empty">مفيش نتائج</td></tr>';
   $('awTeachers').innerHTML = AW.teachers.length ? AW.teachers.map(t => `<tr><td>${esc(t.name)}</td><td>${t.hw}</td><td>${t.exam}</td><td>${t.last ? fmt(t.last) : '<span class="tag off">لسه منشرش</span>'}</td><td>${t.subs}</td><td>${t.pending ? `<span class="tag" style="background:#fff1d6;color:#8a5a00">${t.pending}</span>` : '0'}</td></tr>`).join('')
     : '<tr><td colspan="6" class="empty">مفيش مدرسين</td></tr>';
-  $('awLogs').innerHTML = AW.logs.length ? AW.logs.map(l => `<tr><td>${fmt(l.time)}</td><td>${esc(l.name)}</td><td>${ROLE[l.role] || '—'}</td><td>${esc(l.action)}</td><td dir="ltr" style="text-align:start">${esc(l.details)}</td></tr>`).join('') : '<tr><td colspan="5" class="empty">لسه مفيش نشاط</td></tr>';
 }
 ['awType','awTeacher'].forEach(id => $(id).onchange = renderFollow);
 let awT; $('awQ').oninput = () => { clearTimeout(awT); awT = setTimeout(renderFollow, 200); };
@@ -705,6 +728,197 @@ function applyPerms() {
   const opts = roles.map(([v, t]) => `<option value="${v}">${t}</option>`).join('');
   $('addForm').role.innerHTML = opts; $('editForm').role.innerHTML = opts; $('addForm').role.onchange();
   document.querySelector('.tabs button[data-t="home"]').click();
+}
+
+/* ---------- عرض الأسئلة (للأدمن والمدرس) ---------- */
+const okUrl = u => /^https:\/\/(drive|docs)\.google\.com\//.test(u || '');
+const fileLink = (u, t) => okUrl(u) ? `<a class="lnk" href="${esc(u)}" target="_blank" rel="noopener">${t}</a>` : '';
+function qView(q, i, o) {
+  o = o || {}; const has = o.has, a = o.ans; let body = '';
+  if (q.type === 'mcq' || q.type === 'multi') {
+    const sel = a === undefined ? [] : (Array.isArray(a) ? a.map(Number) : [Number(a)]);
+    body = q.options.map((t, k) => `<div class="ov ${q.correct.includes(k) ? 'okopt' : ''}">${q.correct.includes(k) ? '✓' : '○'} ${esc(t)}${has && sel.includes(k) ? ' <span class="tag">اختيار الطالب</span>' : ''}</div>`).join('');
+  } else if (q.type === 'tf') {
+    body = `<div class="ov okopt">✓ ${q.answer === 'true' ? 'صح' : 'غلط'}</div>` + (has ? `<div class="ov">إجابة الطالب: ${a === 'true' ? 'صح' : a === 'false' ? 'غلط' : '—'}</div>` : '');
+  } else if (q.type === 'short') {
+    body = `<div class="ov okopt">الإجابات المقبولة: ${q.answers.map(esc).join(' | ')}</div>` + (has ? `<div class="ov">إجابة الطالب: ${esc(a || '—')}</div>` : '');
+  } else if (q.type === 'order') {
+    body = `<div class="ov okopt">الترتيب الصحيح: ${q.items.map((t, k) => `${k + 1}. ${esc(t)}`).join(' ← ')}</div>` + (has && Array.isArray(a) ? `<div class="ov">ترتيب الطالب: ${a.map(n => esc(q.items[n] ?? '؟')).join(' ← ')}</div>` : '');
+  } else if (q.type === 'essay') {
+    body = (q.note ? `<div class="ov okopt">إجابة نموذجية: ${esc(q.note)}</div>` : '') + (has ? `<div class="ov" style="white-space:pre-wrap">${esc(a || '—')}</div>` : '');
+  } else {
+    body = (q.note ? `<div class="ov">${esc(q.note)}</div>` : '') + (has ? (fileLink(a, 'فتح صورة الحل') || '<div class="ov">ما رفعش حاجة</div>') : '');
+  }
+  const manual = o.grade && (q.type === 'essay' || q.type === 'upload');
+  const score = o.grade ? (manual ? `<input type="number" class="mg" data-qid="${esc(q.id)}" min="0" max="${esc(q.points)}" step="0.5" value="${esc((o.manual || {})[q.id] ?? 0)}" style="width:80px"> / ${esc(q.points)}` : `<span class="tag ${(o.detail || {})[q.id] ? 'teacher' : 'off'}">${(o.detail || {})[q.id] ?? 0} / ${esc(q.points)}</span>`) : `<small>${esc(q.points)} درجة</small>`;
+  return `<div class="qc"><div class="qh"><b>سؤال ${i + 1} · ${QT[q.type]}</b><span>${score}</span></div>
+    <div dir="${q.dir}" style="white-space:pre-wrap;font-weight:600">${esc(q.text)}</div>${q.img ? `<img src="${esc(q.img)}" alt="" style="max-width:100%;border-radius:10px;margin-top:8px">` : ''}${body}</div>`;
+}
+
+/* الأدمن: تفاصيل واجب أو امتحان */
+$('awRows').onclick = e => { const b = e.target.closest('[data-view]'); if (b) viewWork(b.dataset.view); };
+$('vClose').onclick = () => $('vDlg').close();
+async function viewWork(id) {
+  $('vBody').innerHTML = '<div class="empty">جاري التحميل...</div>'; $('vDlg').showModal();
+  const j = await api('workDetail', {assignId: id});
+  if (!j.ok) { $('vBody').innerHTML = `<div class="err">${esc(j.error)}</div>`; return; }
+  const w = j.work, ex = w.type === 'exam';
+  $('vBody').innerHTML = `<h4>${ex ? 'امتحان' : 'واجب'}: ${esc(w.title)}</h4>
+    <p style="color:var(--mut);line-height:1.9">المدرس: ${esc(w.teacher)} · ${esc(w.classLabel)} · الدرجة ${esc(w.maxScore)}${ex ? ` · ${w.duration ? w.duration + ' دقيقة' : 'من غير وقت'} · ${w.shuffle ? 'ترتيب عشوائي' : 'ترتيب ثابت'}` : ''}${w.dueDate ? ' · آخر موعد ' + fmt(w.dueDate) : ''}<br>اتنشر ${fmt(w.createdAt)}</p>
+    ${w.description ? `<div class="panel" style="white-space:pre-wrap">${esc(w.description)}</div>` : ''}
+    ${fileLink(w.fileUrl, '📎 فتح الملف المرفق') || '<p><small>مفيش ملف مرفق</small></p>'}
+    ${ex ? w.questions.map((q, i) => qView(q, i)).join('') : ''}`;
+}
+
+/* المدرس: التسليمات والتصحيح */
+let SUBA = null;
+const STL = {todo:'لم يسلّم', progress:'بدأ ولم يسلّم', submitted:'ينتظر التصحيح', graded:'متصحح'};
+$('sClose').onclick = () => $('sDlg').close();
+async function openSubs(id) {
+  SUBA = id; $('sBody').innerHTML = '<div class="empty">جاري التحميل...</div>'; if (!$('sDlg').open) $('sDlg').showModal();
+  const j = await api('workSubmissions', {assignId: id});
+  if (!j.ok) { $('sBody').innerHTML = `<div class="err">${esc(j.error)}</div>`; return; }
+  const c = k => j.rows.filter(r => r.status === k).length;
+  $('sBody').innerHTML = `<h4>${esc(j.assign.title)}</h4><p style="color:var(--mut)">سلّم ${c('submitted') + c('graded')} من ${j.rows.length} · متصحح ${c('graded')} · ينتظر التصحيح ${c('submitted')}</p>
+    <div class="tw"><table><thead><tr><th>الطالب</th><th>الحالة</th><th>وقت التسليم</th><th>الدرجة</th><th></th></tr></thead><tbody>
+    ${j.rows.map(r => `<tr><td>${esc(r.name)}</td><td><span class="tag ${r.status === 'graded' ? 'teacher' : r.status === 'todo' ? 'off' : ''}">${STL[r.status]}</span></td><td>${r.at ? fmt(r.at) : '—'}</td>
+      <td>${r.status === 'graded' ? esc(r.score) + ' / ' + esc(j.assign.maxScore) : '—'}</td>
+      <td>${r.subId && (r.status === 'submitted' || r.status === 'graded') ? `<button class="mini" data-g="${esc(r.subId)}">${r.status === 'graded' ? 'مراجعة' : 'تصحيح'}</button>` : ''}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">مفيش طلاب في الفصل ده</td></tr>'}
+    </tbody></table></div>`;
+}
+$('sBody').onclick = e => { const b = e.target.closest('[data-g]'); if (b) openGrade(b.dataset.g); };
+async function openGrade(subId) {
+  $('gBody').innerHTML = '<div class="empty">جاري التحميل...</div>'; $('gDlg').showModal();
+  const j = await api('getSubmission', {subId});
+  if (!j.ok) { $('gBody').innerHTML = `<div class="err">${esc(j.error)}</div>`; return; }
+  const ex = j.assign.type === 'exam'; let b = `<h4>${esc(j.student)} · ${esc(j.assign.title)}</h4>`;
+  if (ex) b += j.questions.map((q, i) => qView(q, i, {has: true, ans: j.answers[q.id], detail: j.detail, manual: j.manual, grade: true})).join('') + `<p>درجة الأسئلة التلقائية: <b>${j.sub.autoScore}</b> من ${esc(j.assign.maxScore)} (الإجمالي بيتحسب مع الأسئلة المقالية)</p>`;
+  else b += `<div class="panel" style="white-space:pre-wrap">${esc(j.sub.answerText || '—')}</div>${fileLink(j.sub.fileUrl, 'فتح ملف الطالب')}
+    <label>الدرجة (من ${esc(j.assign.maxScore)})</label><input type="number" id="gScore" min="0" max="${esc(j.assign.maxScore)}" step="0.5" value="${esc(j.sub.score)}">`;
+  b += `<label>ملاحظة للطالب (اختياري)</label><input id="gFb" value="${esc(j.sub.feedback || '')}"><div id="gErr" class="err hide"></div>
+    <div class="row2"><button class="btn" id="gSave" type="button">حفظ الدرجة</button><button class="btn gh" id="gClose" type="button">إلغاء</button></div>`;
+  $('gBody').innerHTML = b; $('gClose').onclick = () => $('gDlg').close();
+  $('gSave').onclick = async () => {
+    const btn = $('gSave'), er = $('gErr'); er.classList.add('hide'); btn.disabled = true;
+    const p = {subId, feedback: $('gFb').value};
+    if (ex) { p.manual = {}; $('gBody').querySelectorAll('.mg').forEach(x => p.manual[x.dataset.qid] = x.value); } else p.score = $('gScore').value;
+    try { const r = await api('gradeSubmission', p); if (!r.ok) throw new Error(r.error); $('gDlg').close(); openSubs(SUBA); loadWork(); }
+    catch (x) { er.textContent = x.message; er.classList.remove('hide'); btn.disabled = false; }
+  };
+}
+
+/* ---------- بوابة الطالب ---------- */
+let SW = [], EX = null, ANS = {}, exTimer = null, exEnd = 0;
+$('out3').onclick = () => logout();
+async function loadStudent(user) {
+  $('svWho').textContent = user.fullName; $('svList').innerHTML = '<div class="empty">جاري التحميل...</div>';
+  try { const j = await api('myWork'); if (!j.ok) throw new Error(j.error); SW = j.work; $('svClass').textContent = j.classLabel ? 'فصلي: ' + j.classLabel : 'لسه ما اتسجلتش في فصل. كلّم شؤون الطلاب'; renderStudent(); }
+  catch (x) { $('svList').innerHTML = `<div class="err">${esc(x.message)}</div>`; }
+}
+const expired = w => w.dueDate && w.dueDate < Date.now();
+function statusTag(w) {
+  if (w.status === 'graded') return `<span class="tag teacher">${esc(w.score)} / ${esc(w.maxScore)}</span>`;
+  if (w.status === 'submitted') return '<span class="tag">تم التسليم</span>';
+  if (expired(w)) return '<span class="tag off">فات الموعد</span>';
+  return w.status === 'progress' ? '<span class="tag" style="background:#fff1d6;color:#8a5a00">جاري</span>' : '<span class="tag">لسه</span>';
+}
+function renderStudent() {
+  const pend = SW.filter(w => (w.status === 'todo' || w.status === 'progress') && !expired(w)), rest = SW.filter(w => !pend.includes(w));
+  const card = w => `<div class="panel wk stu-card" style="margin-bottom:12px" data-open="${esc(w.assignId)}"><div><span class="tag ${w.type === 'exam' ? '' : 'teacher'}">${w.type === 'exam' ? 'امتحان' : 'واجب'}</span> <strong>${esc(w.title)}</strong><br>
+    <small>${esc(w.teacher)}${w.dueDate ? ' · آخر موعد ' + fmt(w.dueDate) : ''}${w.type === 'exam' && w.duration ? ' · ' + w.duration + ' دقيقة' : ''}${w.hasFile ? ' · 📎' : ''}</small></div><div>${statusTag(w)}</div></div>`;
+  $('svList').innerHTML = `<h3>المطلوب مني</h3>${pend.length ? pend.map(card).join('') : '<div class="panel empty">مفيش حاجة مطلوبة دلوقتي</div>'}<h3>السابق</h3>${rest.length ? rest.map(card).join('') : '<div class="panel empty">—</div>'}`;
+}
+$('svList').onclick = e => { const c = e.target.closest('[data-open]'); if (c) openWork(c.dataset.open); };
+async function openWork(id) {
+  $('swBody').innerHTML = '<div class="empty">جاري التحميل...</div>'; if (!$('swDlg').open) $('swDlg').showModal();
+  let w; try { w = await api('getWork', {assignId: id}); if (!w.ok) throw new Error(w.error); } catch (x) { $('swBody').innerHTML = `<div class="err">${esc(x.message)}</div><div class="row2"><button class="btn gh" id="swClose">إغلاق</button></div>`; $('swClose').onclick = () => $('swDlg').close(); return; }
+  const ex = w.type === 'exam', late = expired(w), open = (w.status === 'todo' || w.status === 'progress') && !late;
+  let h = `<h4>${ex ? 'امتحان' : 'واجب'}: ${esc(w.title)}</h4><p style="color:var(--mut)">${esc(w.teacher)} · الدرجة ${esc(w.maxScore)}${w.dueDate ? ' · آخر موعد ' + fmt(w.dueDate) : ''}</p>`;
+  if (w.description) h += `<div class="panel" style="white-space:pre-wrap">${esc(w.description)}</div>`;
+  h += fileLink(w.fileUrl, '📎 فتح الملف المرفق');
+  if (w.status === 'graded') h += `<div class="ok">درجتك: ${esc(w.score)} من ${esc(w.maxScore)}${w.feedback ? `<br>ملاحظة المدرس: ${esc(w.feedback)}` : ''}</div>`;
+  else if (w.status === 'submitted') h += `<div class="ok">تم التسليم${ex ? ' وبانتظار تصحيح المدرس' : ''}</div>`;
+  if (ex && open) h += `<p>${w.qCount} سؤال${w.duration ? ` · المدة ${w.duration} دقيقة. العدّاد بيبدأ أول ما تضغط ابدأ، ولو قفلت الصفحة هيفضل شغال` : ''}</p><button class="btn" id="exStart" type="button">${w.status === 'progress' ? 'كمّل الامتحان' : 'ابدأ الامتحان'}</button>`;
+  else if (!ex && w.status !== 'graded' && !late) h += `<label>إجابتك</label><textarea id="hwText" rows="5">${esc(w.answerText || '')}</textarea><label>ارفع ملف (اختياري)</label><input type="file" id="hwFile">${w.myFile ? '<small>فيه ملف مرفوع قبل كده، ورفع ملف جديد هيبدّله</small>' : ''}<div id="hwErr" class="err hide"></div><button class="btn" id="hwSend" type="button">${w.status === 'submitted' ? 'تعديل التسليم' : 'تسليم الواجب'}</button>`;
+  else if (late && (w.status === 'todo' || w.status === 'progress')) h += '<div class="err">انتهى موعد التسليم</div>';
+  h += '<div class="row2"><button class="btn gh" id="swClose" type="button">إغلاق</button></div>';
+  $('swBody').innerHTML = h; $('swClose').onclick = () => { $('swDlg').close(); loadStudent(SU); };
+  if ($('exStart')) $('exStart').onclick = () => startExamUI(id);
+  if ($('hwSend')) $('hwSend').onclick = async () => {
+    const b = $('hwSend'), er = $('hwErr'); er.classList.add('hide'); b.disabled = true;
+    try { let url = w.myFile || ''; const f = $('hwFile').files[0]; if (f) url = (await upload(f)).url;
+      const r = await api('submitWork', {assignId: id, answerText: $('hwText').value, fileUrl: url}); if (!r.ok) throw new Error(r.error);
+      $('swBody').innerHTML = '<h4>تم تسليم الواجب ✓</h4><div class="row2"><button class="btn gh" id="swClose2" type="button">تمام</button></div>'; $('swClose2').onclick = () => { $('swDlg').close(); loadStudent(SU); };
+    } catch (x) { er.textContent = x.message; er.classList.remove('hide'); b.disabled = false; }
+  };
+}
+
+/* الامتحان */
+const exKey = () => 'pps_ans_' + (SU ? SU.userId : '') + '_' + EX.assignId;
+const saveAns = () => { try { localStorage.setItem(exKey(), JSON.stringify(ANS)); } catch (e) {} };
+async function startExamUI(id) {
+  const b = $('exStart'); b.disabled = true;
+  try {
+    const j = await api('startExam', {assignId: id}); if (!j.ok) throw new Error(j.error);
+    EX = {assignId: id, questions: j.questions}; ANS = {};
+    try { ANS = JSON.parse(localStorage.getItem(exKey()) || '{}'); } catch (e) {}
+    EX.questions.forEach(q => { if (q.type === 'order' && !Array.isArray(ANS[q.id])) ANS[q.id] = q.items.map(x => x.i); });
+    $('exTitle').textContent = j.title; $('exErr').classList.add('hide'); $('exSubmit').disabled = false; renderExam();
+    $('swDlg').close(); $('exDlg').showModal(); window.onbeforeunload = e => { e.preventDefault(); e.returnValue = ''; };
+    clearInterval(exTimer); $('exTimer').textContent = '';
+    if (j.duration) { exEnd = Date.now() + j.remainingMs; tick(); exTimer = setInterval(tick, 1000); }
+  } catch (x) { b.disabled = false; alert(x.message); }
+}
+function tick() {
+  const left = exEnd - Date.now();
+  if (left <= 0) { clearInterval(exTimer); $('exTimer').textContent = 'انتهى الوقت'; submitExam(true); return; }
+  $('exTimer').textContent = `⏱ ${Math.floor(left / 60000)}:${String(Math.floor(left % 60000 / 1000)).padStart(2, '0')}`;
+}
+function orderHTML(q) {
+  const idx = ANS[q.id];
+  return '<small>رتّب العناصر بالأسهم</small>' + idx.map((n, p) => { const it = q.items.find(x => x.i === n);
+    return `<div class="ordli"><b>${p + 1}</b><span style="flex:1" dir="${q.dir}">${esc(it.t)}</span><button type="button" class="mini" data-q="${q.id}" data-mv="${p}" data-d="-1" ${p === 0 ? 'disabled' : ''}>▲</button><button type="button" class="mini" data-q="${q.id}" data-mv="${p}" data-d="1" ${p === idx.length - 1 ? 'disabled' : ''}>▼</button></div>`; }).join('');
+}
+function exQ(q, i) {
+  const a = ANS[q.id]; let body = '';
+  if (q.type === 'mcq') body = q.options.map(o => `<label class="opt"><input type="radio" name="q_${q.id}" data-q="${q.id}" value="${o.i}" ${a === o.i ? 'checked' : ''}> <span dir="${q.dir}">${esc(o.t)}</span></label>`).join('');
+  else if (q.type === 'multi') body = q.options.map(o => `<label class="opt"><input type="checkbox" data-q="${q.id}" value="${o.i}" ${(a || []).includes(o.i) ? 'checked' : ''}> <span dir="${q.dir}">${esc(o.t)}</span></label>`).join('') + '<small>ممكن أكتر من إجابة</small>';
+  else if (q.type === 'tf') body = ['true', 'false'].map(v => `<label class="opt"><input type="radio" name="q_${q.id}" data-q="${q.id}" value="${v}" ${a === v ? 'checked' : ''}> ${v === 'true' ? 'صح' : 'غلط'}</label>`).join('');
+  else if (q.type === 'short') body = `<input type="text" data-q="${q.id}" dir="${q.dir}" value="${esc(a || '')}" placeholder="اكتب إجابتك">`;
+  else if (q.type === 'order') body = orderHTML(q);
+  else if (q.type === 'essay') body = `<textarea rows="5" data-q="${q.id}" dir="${q.dir}" placeholder="اكتب إجابتك">${esc(a || '')}</textarea>`;
+  else body = `<div class="qi"><input type="file" accept="image/*,application/pdf" data-q="${q.id}"> <span id="up_${q.id}">${a ? '✓ تم الرفع' : ''}</span></div><small>${esc(q.note || 'صوّر الحل وارفعه')}</small>`;
+  return `<div class="qc"><div class="qh"><b>سؤال ${i + 1}</b><small>${esc(q.points)} درجة</small></div><div dir="${q.dir}" style="white-space:pre-wrap;font-weight:600">${esc(q.text)}</div>${q.img ? `<img src="${esc(q.img)}" alt="" style="max-width:100%;border-radius:10px;margin-top:8px">` : ''}<div id="qb_${q.id}" style="margin-top:6px">${body}</div></div>`;
+}
+const renderExam = () => $('exQs').innerHTML = EX.questions.map(exQ).join('');
+$('exQs').addEventListener('change', async e => {
+  const t = e.target, id = t.dataset.q; if (!id || !EX) return; const q = EX.questions.find(x => x.id === id);
+  if (q.type === 'mcq') ANS[id] = Number(t.value);
+  else if (q.type === 'multi') ANS[id] = [...$('exQs').querySelectorAll(`input[data-q="${id}"]:checked`)].map(x => Number(x.value));
+  else if (q.type === 'tf') ANS[id] = t.value;
+  else if (q.type === 'upload' && t.files[0]) { const st = $('up_' + id); st.textContent = 'جاري الرفع...'; try { ANS[id] = (await upload(t.files[0])).url; st.textContent = '✓ تم الرفع'; } catch (x) { st.textContent = x.message; } }
+  saveAns();
+});
+$('exQs').addEventListener('input', e => { const t = e.target, id = t.dataset.q; if (id && EX && (t.type === 'text' || t.tagName === 'TEXTAREA')) { ANS[id] = t.value; saveAns(); } });
+$('exQs').addEventListener('click', e => {
+  const b = e.target.closest('[data-mv]'); if (!b) return;
+  const id = b.dataset.q, p = +b.dataset.mv, d = +b.dataset.d, a = ANS[id]; [a[p], a[p + d]] = [a[p + d], a[p]];
+  $('qb_' + id).innerHTML = orderHTML(EX.questions.find(x => x.id === id)); saveAns();
+});
+$('exDlg').addEventListener('cancel', e => e.preventDefault());
+const unanswered = q => { const a = ANS[q.id]; return q.type === 'order' ? false : (a === undefined || a === '' || (Array.isArray(a) && !a.length)); };
+$('exSubmit').onclick = () => submitExam(false);
+async function submitExam(auto) {
+  if (!EX || EX.busy) return;
+  if (!auto) { const n = EX.questions.filter(unanswered).length; if (!confirm(n ? `فيه ${n} سؤال من غير إجابة. تسلّم برضه؟` : 'تسليم الامتحان؟ مش هتقدر تعدّل بعد كده')) return; }
+  EX.busy = true; $('exSubmit').disabled = true; $('exErr').classList.add('hide');
+  try {
+    const j = await api('submitWork', {assignId: EX.assignId, answers: ANS}); if (!j.ok) throw new Error(j.error);
+    clearInterval(exTimer); window.onbeforeunload = null; try { localStorage.removeItem(exKey()); } catch (e) {}
+    $('exDlg').close(); EX = null;
+    $('swBody').innerHTML = `<h4>تم تسليم الامتحان ✓</h4>${j.graded ? `<div class="ok">درجتك: ${esc(j.score)} من ${esc(j.max)}</div>` : '<div class="ok">الأسئلة التلقائية اتصححت، والمقالية هتتصحح من المدرس وهتشوف درجتك بعد كده.</div>'}<div class="row2"><button class="btn gh" id="swClose2" type="button">تمام</button></div>`;
+    $('swDlg').showModal(); $('swClose2').onclick = () => { $('swDlg').close(); loadStudent(SU); };
+  } catch (x) { EX.busy = false; $('exSubmit').disabled = false; $('exErr').textContent = x.message; $('exErr').classList.remove('hide'); }
 }
 
 // استرجاع الجلسة عند فتح الصفحة
