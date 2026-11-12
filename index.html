@@ -97,6 +97,8 @@ textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radi
 .ordli{display:flex;gap:8px;align-items:center;padding:8px 10px;border:1.5px solid var(--line);border-radius:10px;margin-top:6px;background:#fff}
 .stu-card{cursor:pointer}.stu-card:hover{border-color:var(--navy)}
 .lnk{display:inline-block;margin:8px 0;padding:9px 16px;border:1.5px solid var(--navy);border-radius:10px;color:var(--navy);text-decoration:none;font-weight:600}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:0 12px}
+.ageb{color:var(--navy);font-weight:600;font-size:.85rem;min-height:1.2em;margin-top:4px}.hint{color:#a11d1d;font-size:.82rem}
 @media(max-width:820px){.login{grid-template-columns:1fr}.brand{padding:32px 24px}.brand img{width:140px}.brand h1{font-size:1.4rem;margin-top:12px}.brand p{display:none}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -139,7 +141,7 @@ textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radi
     <span id="who"></span><button id="out">خروج</button>
   </header>
   <main>
-    <nav class="tabs"><button data-t="home" class="on">نظرة عامة</button><button data-t="users" data-need="users.manage|students.manage">المستخدمين</button><button data-t="classes" data-need="classes.manage|students.manage">الفصول</button><button data-t="follow" data-need="work.view">متابعة الواجبات والامتحانات</button></nav>
+    <nav class="tabs"><button data-t="home" class="on">نظرة عامة</button><button data-t="users" data-need="users.manage|students.manage">المستخدمين</button><button data-t="classes" data-need="classes.manage|students.manage">الفصول</button><button data-t="follow" data-need="work.view">متابعة الواجبات والامتحانات</button><button data-t="reports" data-need="students.manage">تقارير الطلاب</button></nav>
 
     <div id="t-home">
       <div class="stats" id="stats"></div>
@@ -158,6 +160,7 @@ textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radi
         <div><label>الدور</label>
           <select name="role"><option value="teacher">مدرس</option><option value="student">طالب</option><option value="admin">أدمن</option></select></div>
         <div><label>الموبايل (اختياري)</label><input name="phone" dir="ltr"></div>
+        <div id="aProfile" class="hide" style="grid-column:1/-1"></div>
         <div id="aPerms" class="hide" style="grid-column:1/-1"></div>
         <button class="btn" type="submit">إضافة</button>
       </form>
@@ -190,6 +193,23 @@ textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radi
         <tbody id="classes"></tbody></table></div>
     </div>
   
+    <div id="t-reports" class="hide">
+      <h3>تقرير بيانات الطلاب</h3>
+      <div class="panel">
+        <div class="add" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+          <div><label>الصف</label><select id="rpGrade"></select></div><div><label>الفصل</label><select id="rpClass"></select></div>
+          <div><label>الديانة</label><select id="rpRel"></select></div><div><label>اللغة الثانية</label><select id="rpLang"></select></div>
+          <div><label>الجنسية</label><select id="rpNat"></select></div><div><label>النوع</label><select id="rpGender"></select></div>
+          <div><label>الحالة</label><select id="rpStatus"><option value="active">النشطين</option><option value="">الكل</option><option value="inactive">الموقوفين</option></select></div>
+          <div><label>بحث</label><input id="rpQ" placeholder="اسم، كود، رقم قومي"></div>
+        </div>
+        <label>الأعمدة اللي تظهر في التقرير</label><div class="chk" id="rpCols"></div>
+        <div class="bar"><button class="btn" id="rpXls" type="button">تحميل Excel</button><button class="btn gh" id="rpPdf" type="button">حفظ PDF / طباعة</button><small id="rpCount"></small></div>
+      </div>
+      <div class="panel tw" style="margin-top:12px"><table style="min-width:700px"><thead id="rpHead"></thead><tbody id="rpRows"></tbody></table></div>
+      <small>التقرير فيه بيانات حساسة، استخدمه للأغراض الإدارية بس.</small>
+    </div>
+
     <div id="t-follow" class="hide">
       <div class="bar"><button class="btn gh" id="awRefresh" type="button">تحديث</button></div>
       <div id="awErr"></div>
@@ -219,6 +239,7 @@ textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radi
     <div id="clsRow"><label>الفصل</label><select name="classId"></select></div>
     <label>الموبايل</label><input name="phone" dir="ltr">
     <label>كلمة سر جديدة (سيبها فاضية لو مش عايز تغيّرها)</label><input name="password" dir="ltr" autocomplete="new-password">
+    <div id="eProfile" class="hide"></div>
     <div id="ePerms" class="hide"></div>
     <div id="eerr" class="err hide"></div>
     <div class="row2"><button class="btn" id="esave" type="submit">حفظ التعديلات</button><button class="btn gh" id="ecancel" type="button">إلغاء</button></div>
@@ -302,7 +323,7 @@ const ROLE = {admin:'أدمن', teacher:'مدرس', student:'طالب', staff:'�
 let token = null, ME = null, SU = null;
 try { token = sessionStorage.getItem('pps_token'); } catch (e) {}
 
-const READS = new Set(['adminInit','me','adminStats','listUsers','listClasses','adminWork','myClasses','listMyWork']);
+const READS = new Set(['getStudentProfile','studentsReport','adminInit','me','adminStats','listUsers','listClasses','adminWork','myClasses','listMyWork']);
 async function api(action, data) {
   // text/plain بيمنع preflight ويشتغل من GitHub Pages. القراءات بتتعاد تلقائي لو السيرفر مشغول
   const body = JSON.stringify({action, token, data}), tries = READS.has(action) ? 3 : 1;
@@ -362,8 +383,9 @@ const clsLabel = id => { const c = CLASSES.find(x => x.classId === id); return c
 
 document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
   document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
-  ['home','users','classes','follow'].forEach(t => $('t-' + t).classList.toggle('hide', t !== b.dataset.t));
+  ['home','users','classes','follow','reports'].forEach(t => $('t-' + t).classList.toggle('hide', t !== b.dataset.t));
   if (b.dataset.t === 'follow') loadFollow();
+  if (b.dataset.t === 'reports') loadReport();
 });
 
 async function loadAdmin() {
@@ -413,6 +435,8 @@ $('bGo').onclick = async () => {
 
 /* استيراد Excel */
 const H = ['الاسم بالكامل','اسم المستخدم','كلمة السر','الدور','الصف','الفصل','الموبايل','المادة'];
+const HX = ['اسم ولي الأمر','موبايل ولي الأمر','واتساب ولي الأمر','الرقم القومي','تاريخ الميلاد','النوع','الديانة','تاريخ الالتحاق','الجنسية','اللغة الثانية','كود الطالب','العنوان'];
+const PFK = ['guardianName','parentPhone','guardianWhatsapp','nationalId','birthDate','gender','religion','enrollDate','nationality','lang2','studentCode','address'];
 let _xl = null;
 const XLS = () => _xl || (_xl = new Promise(res => {
   if (typeof XLSX !== 'undefined') return res(XLSX);
@@ -426,9 +450,9 @@ $('impClose').onclick = () => $('impDlg').close();
 $('tplBtn').onclick = async () => {
   const X = await XLS(); if (!X) return;
   const wb = X.utils.book_new();
-  const ws = X.utils.aoa_to_sheet([H, ['أحمد محمد علي','ahmed.m','','طالب',GRADES[0],'1','',''], ['سارة حسن','sara.h','','مدرس',GRADES[0],'1','','رياضيات']]);
-  ws['!cols'] = H.map(() => ({wch: 22}));
-  const info = X.utils.aoa_to_sheet([['تعليمات'],['الدور: طالب أو مدرس'],['كلمة السر: سيبها فاضية والنظام يولّد كلمة سر تلقائي (6 أرقام)'],['الصف: انسخه بالظبط من القايمة تحت'],['الفصل: اسم الفصل زي ما سجلته (لو مش موجود هيتعمل تلقائي)'],['المادة: للمدرس بس'],['المدرس اللي بيدرّس أكتر من فصل: كرر اسم المستخدم في سطر جديد بفصل ومادة تانيين'],['الموبايل: اكتبه كنص عشان الصفر ميتشالش'],[''],['الصفوف المسموحة'], ...GRADES.map(g => [g])]);
+  const ws = X.utils.aoa_to_sheet([H.concat(HX), ['أحمد محمد علي','ahmed.m','','طالب',GRADES[0],'1','01000000000','','محمد علي','01100000000','','','2015-05-31','ذكر','مسلم','2021-09-20','مصري','فرنسي','1001','القاهرة'], ['سارة حسن','sara.h','','مدرس',GRADES[0],'1','','رياضيات', ...HX.map(() => '')]]);
+  ws['!cols'] = H.concat(HX).map(() => ({wch: 22}));
+  const info = X.utils.aoa_to_sheet([['تعليمات'],['الدور: طالب أو مدرس'],['كلمة السر: سيبها فاضية والنظام يولّد كلمة سر تلقائي (6 أرقام)'],['الصف: انسخه بالظبط من القايمة تحت'],['الفصل: اسم الفصل زي ما سجلته (لو مش موجود هيتعمل تلقائي)'],['المادة: للمدرس بس'],['المدرس اللي بيدرّس أكتر من فصل: كرر اسم المستخدم في سطر جديد بفصل ومادة تانيين'],['الموبايل: اكتبه كنص عشان الصفر ميتشالش'],['الأعمدة من اسم ولي الأمر لحد العنوان: بيانات الطالب الإضافية (اختيارية وللطلاب بس)'],['التاريخ بصيغة 2015-05-31، والرقم القومي 14 رقم (اكتبه كنص)، والنوع ذكر أو أنثى، والديانة مسلم أو مسيحي'],['لو كتبت الرقم القومي ومكتبتش تاريخ الميلاد أو النوع، النظام بياخدهم منه'],[''],['الصفوف المسموحة'], ...GRADES.map(g => [g])]);
   info['!cols'] = [{wch: 70}];
   wb.Workbook = {Views: [{RTL: true}]};
   X.utils.book_append_sheet(wb, ws, 'المستخدمين'); X.utils.book_append_sheet(wb, info, 'تعليمات');
@@ -442,10 +466,19 @@ $('impFile').onchange = async e => {
   raw.forEach((r, i) => {
     const g = k => String(r[k] ?? '').trim(), o = {row: i + 2, fullName: g(H[0]), username: g(H[1]), password: g(H[2]), role: RM[g(H[3]).toLowerCase()] || '', grade: g(H[4]), cname: g(H[5]), phone: g(H[6]), subject: g(H[7])};
     if (!o.username && !o.fullName) return;
+    if (o.role === 'student') {
+      const pr = {}; HX.forEach((hh, k) => { const v = g(hh); if (v) pr[PFK[k]] = v; });
+      if (pr.religion) pr.religion = /^مسلم/.test(pr.religion) ? 'مسلم' : /^مسيح/.test(pr.religion.replace(/ى/g, 'ي')) ? 'مسيحي' : pr.religion;
+      if (pr.gender) pr.gender = /^ذكر/.test(pr.gender) ? 'ذكر' : /^(أنثى|انثى|بنت)/.test(pr.gender) ? 'أنثى' : pr.gender;
+      ['parentPhone','guardianWhatsapp'].forEach(k => { if (/^1\d{9}$/.test(pr[k] || '')) pr[k] = '0' + pr[k]; });
+      ['birthDate','enrollDate'].forEach(k => { if (pr[k]) { const mm = pr[k].match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/); pr[k] = mm ? `${mm[1]}-${mm[2].padStart(2, '0')}-${mm[3].padStart(2, '0')}` : '#bad'; } });
+      if (Object.keys(pr).length) o.prof = pr;
+    }
     let m = '';
     if (!o.username) m = 'اسم المستخدم ناقص';
     else if (o.grade && !GRADES.includes(o.grade)) m = 'الصف مش مطابق للقايمة';
     else if (!o.grade !== !o.cname) m = 'الصف والفصل لازم مع بعض';
+    else if (o.prof && (o.prof.birthDate === '#bad' || o.prof.enrollDate === '#bad')) m = 'التاريخ لازم بصيغة 2015-05-31';
     m ? bad.push({row: o.row, msg: m}) : pending.push(o);
   });
   $('impInfo').innerHTML = `<div class="ok">صفوف جاهزة للاستيراد: <b>${pending.length}</b></div>` +
@@ -489,13 +522,16 @@ $('users').onclick = async e => {
   if (!j.ok) alert(j.error);
   loadAdmin();
 };
-const toggleCls = () => { const r = $('editForm').role.value; $('clsRow').classList.toggle('hide', r !== 'student' || !P('students.manage')); $('ePerms').classList.toggle('hide', r !== 'staff'); };
+const toggleCls = () => { const r = $('editForm').role.value; $('clsRow').classList.toggle('hide', r !== 'student' || !P('students.manage')); $('ePerms').classList.toggle('hide', r !== 'staff'); $('eProfile').classList.toggle('hide', r !== 'student' || !P('students.manage')); };
 $('editForm').role.onchange = toggleCls;
 function openEdit(id) {
   const u = USERS.find(x => x.userId === id), f = $('editForm');
   f.userId.value = id; f.fullName.value = u.fullName; f.username.value = u.username; f.phone.value = u.phone || ''; f.role.value = u.role; f.password.value = '';
   f.classId.innerHTML = '<option value="">— بدون فصل —</option>' + CLASSES.map(c => `<option value="${esc(c.classId)}">${esc(c.grade)} / ${esc(c.className)}</option>`).join('');
-  f.classId.value = u.classId || ''; setPerms('ePerms', u.perms); toggleCls(); $('eerr').classList.add('hide'); $('editDlg').showModal();
+  f.classId.value = u.classId || ''; setPerms('ePerms', u.perms);
+  setProfile('eProfile', DEF_PROF); $('eProfile').dataset.ok = u.role === 'student' ? '' : '1';
+  if (u.role === 'student' && P('students.manage')) api('getStudentProfile', {userId: id}).then(j => { if (j.ok) { setProfile('eProfile', j.profile); $('eProfile').dataset.ok = '1'; } });
+  toggleCls(); $('eerr').classList.add('hide'); $('editDlg').showModal();
 }
 $('ecancel').onclick = () => $('editDlg').close();
 $('editForm').onsubmit = async e => {
@@ -505,6 +541,7 @@ $('editForm').onsubmit = async e => {
   d.perms = getPerms('ePerms');
   let j = await api('updateUser', d);
   if (j.ok && P('students.manage')) j = await api('setStudentClass', {userId: d.userId, classId: d.role === 'student' ? d.classId : ''});
+  if (j.ok && d.role === 'student' && P('students.manage') && $('eProfile').dataset.ok === '1') j = await api('saveStudentProfile', {userId: d.userId, profile: getProfile('eProfile')});
   btn.disabled = false;
   if (!j.ok) { er.textContent = j.error; er.classList.remove('hide'); return; }
   $('editDlg').close(); loadAdmin();
@@ -513,10 +550,10 @@ $('addForm').onsubmit = async e => {
   e.preventDefault();
   const f = e.target, btn = f.querySelector('button'), m = $('amsg');
   btn.disabled = true; m.innerHTML = '';
-  const j = await api('addUser', Object.assign(Object.fromEntries(new FormData(f)), {perms: getPerms('aPerms')}));
+  const j = await api('addUser', Object.assign(Object.fromEntries(new FormData(f)), {perms: getPerms('aPerms'), profile: $('addForm').role.value === 'student' ? getProfile('aProfile') : null}));
   btn.disabled = false;
   m.innerHTML = j.ok ? '<div class="ok">تمت إضافة المستخدم</div>' : `<div class="err">${esc(j.error)}</div>`;
-  if (j.ok) { f.reset(); f.role.onchange(); loadAdmin(); }
+  if (j.ok) { f.reset(); f.role.onchange(); setProfile('aProfile', DEF_PROF); loadAdmin(); }
 };
 
 /* الفصول */
@@ -729,7 +766,7 @@ const setPerms = (id, a) => $(id).querySelectorAll('.pm').forEach(x => x.checked
     <div class="chk">${Object.keys(PL).map(p => `<label class="ri pk"><input type="checkbox" class="pm" value="${p}"><span>${PL[p]}</span></label>`).join('')}</div>`;
   $(id).onclick = e => { const b = e.target.closest('[data-preset]'); if (b) setPerms(id, PRESETS[b.dataset.preset]); };
 });
-$('addForm').role.onchange = () => $('aPerms').classList.toggle('hide', $('addForm').role.value !== 'staff');
+$('addForm').role.onchange = () => { const r = $('addForm').role.value; $('aPerms').classList.toggle('hide', r !== 'staff'); $('aProfile').classList.toggle('hide', r !== 'student' || !P('students.manage')); };
 function applyPerms() {
   document.querySelectorAll('[data-need]').forEach(el => el.classList.toggle('nope', !el.dataset.need.split('|').some(P)));
   const roles = [['teacher','مدرس'],['student','طالب'],['staff','موظف إدارة'],['admin','أدمن']].filter(([r]) => (r === 'staff' || r === 'admin') ? ME.role === 'admin' : canRoleUI(r));
@@ -928,6 +965,96 @@ async function submitExam(auto) {
     $('swDlg').showModal(); $('swClose2').onclick = () => { $('swDlg').close(); loadStudent(SU); };
   } catch (x) { EX.busy = false; $('exSubmit').disabled = false; $('exErr').textContent = x.message; $('exErr').classList.remove('hide'); }
 }
+
+/* ---------- بيانات الطالب الموسّعة ---------- */
+const PF = [['guardianName','اسم ولي الأمر','text'],['parentPhone','موبايل ولي الأمر','tel'],['guardianWhatsapp','واتساب ولي الأمر','tel'],['nationalId','الرقم القومي (14 رقم)','text'],
+  ['birthDate','تاريخ الميلاد','date'],['gender','النوع','sel:ذكر|أنثى'],['religion','الديانة','sel:مسلم|مسيحي'],['enrollDate','تاريخ الالتحاق','date'],
+  ['nationality','الجنسية','text'],['lang2','اللغة الثانية','sel:فرنسي|ألماني|إيطالي|إسباني|أخرى'],['studentCode','كود الطالب','text'],['address','العنوان','text'],['notes','ملاحظات','text']];
+const DEF_PROF = {nationality: 'مصري'};
+function ageText(iso, short) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso || '')) return '';
+  const b = new Date(iso + 'T00:00:00'), n = new Date(); let y = n.getFullYear() - b.getFullYear(), m = n.getMonth() - b.getMonth();
+  if (n.getDate() < b.getDate()) m--; if (m < 0) { y--; m += 12; }
+  return y < 0 ? '' : short ? `${y} سنة و${m} شهر` : `السن دلوقتي: ${y} سنة و${m} شهر`;
+}
+function parseNID(v) {
+  v = String(v || '').replace(/\D/g, ''); if (v.length !== 14 || (v[0] !== '2' && v[0] !== '3')) return null;
+  const y = (v[0] === '2' ? 1900 : 2000) + Number(v.slice(1, 3)), m = Number(v.slice(3, 5)), d = Number(v.slice(5, 7)), dt = new Date(y, m - 1, d);
+  if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return null;
+  return {birthDate: `${y}-${v.slice(3, 5)}-${v.slice(5, 7)}`, gender: Number(v[12]) % 2 ? 'ذكر' : 'أنثى'};
+}
+const profileHTML = () => `<h4 style="margin-top:14px">بيانات الطالب الإضافية</h4><div class="pgrid">${PF.map(([k, t, ty]) => `<div><label>${t}</label>${ty.startsWith('sel:')
+  ? `<select data-pf="${k}"><option value="">—</option>${ty.slice(4).split('|').map(o => `<option>${o}</option>`).join('')}</select>` : `<input data-pf="${k}" type="${ty}" ${ty === 'tel' || k === 'nationalId' ? 'dir="ltr" inputmode="numeric"' : ''}>`}${k === 'birthDate' ? '<div class="ageb"></div>' : ''}${k === 'nationalId' ? '<div class="hint"></div>' : ''}</div>`).join('')}</div>`;
+const getProfile = id => Object.fromEntries([...$(id).querySelectorAll('[data-pf]')].map(x => [x.dataset.pf, x.value.trim()]));
+function setProfile(id, p) { $(id).querySelectorAll('[data-pf]').forEach(x => x.value = (p && p[x.dataset.pf]) || ''); refreshAge(id); }
+function refreshAge(id) { const bd = $(id).querySelector('[data-pf="birthDate"]'); $(id).querySelector('.ageb').textContent = ageText(bd.value); }
+['aProfile','eProfile'].forEach(id => {
+  $(id).innerHTML = profileHTML(); setProfile(id, DEF_PROF);
+  $(id).addEventListener('input', e => {
+    const k = e.target.dataset.pf; if (!k) return;
+    if (k === 'nationalId') {
+      const v = e.target.value.replace(/\D/g, ''), hint = $(id).querySelector('.hint'), info = parseNID(v);
+      hint.textContent = v.length === 14 && !info ? 'الرقم القومي غير صحيح' : '';
+      if (info) { const bd = $(id).querySelector('[data-pf="birthDate"]'), g = $(id).querySelector('[data-pf="gender"]'); if (!bd.value) bd.value = info.birthDate; if (!g.value) g.value = info.gender; }
+    }
+    if (k === 'birthDate' || k === 'nationalId') refreshAge(id);
+  });
+});
+
+/* ---------- تقرير الطلاب (Excel و PDF) ---------- */
+const RC = [['name','اسم الطالب',1],['username','اسم المستخدم',0],['grade','الصف',1],['className','الفصل',1],['age','السن',1],['birthDate','تاريخ الميلاد',0],['gender','النوع',0],['religion','الديانة',0],
+  ['nationalId','الرقم القومي',0],['nationality','الجنسية',0],['lang2','اللغة الثانية',0],['enrollDate','تاريخ الالتحاق',0],['studentCode','كود الطالب',0],['phone','تليفون الطالب',0],
+  ['guardianName','ولي الأمر',0],['parentPhone','موبايل ولي الأمر',1],['guardianWhatsapp','واتساب ولي الأمر',0],['address','العنوان',0],['status','الحالة',0],['notes','ملاحظات',0]];
+$('rpCols').innerHTML = RC.map(([k, t, d]) => `<label class="ri pk"><input type="checkbox" value="${k}" ${d ? 'checked' : ''}><span>${t}</span></label>`).join('');
+let RP = null;
+const rpCell = (r, k) => k === 'age' ? ageText(r.birthDate, true) : k === 'status' ? (r.status === 'active' ? 'نشط' : 'موقوف') : (r[k] ?? '');
+const rpCols = () => RC.filter(([k]) => $('rpCols').querySelector(`input[value="${k}"]`).checked);
+function rpFiltered() {
+  const v = id => $(id).value, q = v('rpQ').trim().toLowerCase();
+  return (RP || []).filter(r => (!v('rpGrade') || r.grade === v('rpGrade')) && (!v('rpClass') || r.className === v('rpClass')) && (!v('rpRel') || r.religion === v('rpRel')) && (!v('rpLang') || r.lang2 === v('rpLang'))
+    && (!v('rpNat') || r.nationality === v('rpNat')) && (!v('rpGender') || r.gender === v('rpGender')) && (!v('rpStatus') || r.status === v('rpStatus'))
+    && (!q || [r.name, r.username, r.studentCode, r.nationalId].join(' ').toLowerCase().includes(q)))
+    .sort((a, b) => GRADES.indexOf(a.grade) - GRADES.indexOf(b.grade) || String(a.className).localeCompare(String(b.className), 'ar') || String(a.name).localeCompare(String(b.name), 'ar'));
+}
+function rpFill() {
+  const uniq = k => [...new Set(RP.map(r => r[k]).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), 'ar'));
+  const opt = (id, arr, all) => { const cur = $(id).value; $(id).innerHTML = `<option value="">${all}</option>` + arr.map(x => `<option>${esc(x)}</option>`).join(''); $(id).value = cur; };
+  opt('rpGrade', GRADES.filter(g => RP.some(r => r.grade === g)), 'كل الصفوف'); opt('rpClass', uniq('className'), 'كل الفصول'); opt('rpRel', uniq('religion'), 'كل الديانات');
+  opt('rpLang', uniq('lang2'), 'كل اللغات'); opt('rpNat', uniq('nationality'), 'كل الجنسيات'); opt('rpGender', uniq('gender'), 'الكل');
+}
+function renderReport() {
+  const rows = rpFiltered(), cols = rpCols();
+  $('rpCount').textContent = `${rows.length} طالب` + (rows.length > 100 ? ' (المعاينة أول 100، والملف فيه الكل)' : '');
+  $('rpHead').innerHTML = `<tr><th>#</th>${cols.map(c => `<th>${c[1]}</th>`).join('')}</tr>`;
+  $('rpRows').innerHTML = rows.length ? rows.slice(0, 100).map((r, i) => `<tr><td>${i + 1}</td>${cols.map(c => `<td>${esc(rpCell(r, c[0]))}</td>`).join('')}</tr>`).join('') : `<tr><td colspan="${cols.length + 1}" class="empty">مفيش طلاب مطابقين</td></tr>`;
+}
+async function loadReport(force) {
+  if (RP && !force) return renderReport();
+  $('rpRows').innerHTML = '<tr><td class="empty">جاري التحميل...</td></tr>';
+  try { const j = await api('studentsReport'); if (!j.ok) throw new Error(j.error); RP = j.rows || []; rpFill(); renderReport(); }
+  catch (x) { $('rpRows').innerHTML = `<tr><td class="empty" style="color:#a11d1d">${esc(x.message)}</td></tr>`; }
+}
+['rpGrade','rpClass','rpRel','rpLang','rpNat','rpGender','rpStatus'].forEach(id => $(id).onchange = renderReport);
+$('rpCols').onchange = renderReport; let rpT; $('rpQ').oninput = () => { clearTimeout(rpT); rpT = setTimeout(renderReport, 200); };
+$('rpXls').onclick = async () => {
+  const X = await XLS(); if (!X) return; const rows = rpFiltered(), cols = rpCols();
+  const ws = X.utils.aoa_to_sheet([cols.map(c => c[1]), ...rows.map(r => cols.map(c => String(rpCell(r, c[0]))))]); ws['!cols'] = cols.map(() => ({wch: 18}));
+  const wb = X.utils.book_new(); wb.Workbook = {Views: [{RTL: true}]}; X.utils.book_append_sheet(wb, ws, 'الطلاب');
+  X.writeFile(wb, `تقرير_الطلاب_${new Date().toISOString().slice(0, 10)}.xlsx`);
+};
+$('rpPdf').onclick = () => {
+  const rows = rpFiltered(), cols = rpCols(), w = window.open('', '_blank'); if (!w) return alert('اسمح بالنوافذ المنبثقة للموقع وحاول تاني');
+  const sel = [['rpGrade','الصف'],['rpClass','الفصل'],['rpRel','الديانة'],['rpLang','اللغة الثانية'],['rpNat','الجنسية']].filter(([id]) => $(id).value).map(([id, t]) => `${t}: ${esc($(id).value)}`).join(' · ');
+  w.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير الطلاب</title><style>
+    @page{size:A4 ${cols.length > 7 ? 'landscape' : 'portrait'};margin:12mm}body{font-family:Tahoma,Arial,sans-serif;color:#14284b;margin:0}
+    .hd{display:flex;align-items:center;gap:14px;border-bottom:3px solid #0b3a82;padding-bottom:10px;margin-bottom:10px}.hd img{height:64px}.hd h1{font-size:18px;margin:0}.hd p{margin:2px 0;font-size:12px;color:#5d7190}
+    table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #c9d8ea;padding:5px 6px;text-align:right}th{background:#0b3a82;color:#fff}thead{display:table-header-group}tr{page-break-inside:avoid}tr:nth-child(even) td{background:#f3f8fd}
+    .ft{margin-top:10px;font-size:10px;color:#5d7190}</style></head><body>
+    <div class="hd"><img src="${new URL('logo.png', location.href).href}" alt=""><div><h1>Pioneer Private Schools — تقرير بيانات الطلاب</h1><p>${new Date().toLocaleDateString('ar-EG', {dateStyle: 'long'})} · ${rows.length} طالب${sel ? ' · ' + sel : ''}</p></div></div>
+    <table><thead><tr><th>#</th>${cols.map(c => `<th>${c[1]}</th>`).join('')}</tr></thead><tbody>${rows.map((r, i) => `<tr><td>${i + 1}</td>${cols.map(c => `<td>${esc(rpCell(r, c[0]))}</td>`).join('')}</tr>`).join('')}</tbody></table>
+    <div class="ft">سري: للاستخدام الإداري فقط</div></body></html>`);
+  w.document.close(); w.focus(); setTimeout(() => w.print(), 600);
+};
 
 /* شريط أخطاء واضح لو حصل خطأ غير متوقع في الصفحة (بيساعد في تحديد المشكلة بالظبط) */
 function showErr(msg) {
