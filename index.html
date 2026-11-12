@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pioneer Private Schools | بوابة المدرسة</title>
 <link rel="icon" href="logo.png">
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -239,7 +241,6 @@ textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radi
   </div></dialog>
 </section>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <section id="teacherView" class="hide">
   <header class="top"><img src="logo.png" alt=""><b>لوحة المدرس</b><span class="sp"></span><span id="tvWho"></span><button id="out2">خروج</button></header>
   <main>
@@ -301,7 +302,7 @@ const ROLE = {admin:'أدمن', teacher:'مدرس', student:'طالب', staff:'�
 let token = null, ME = null, SU = null;
 try { token = sessionStorage.getItem('pps_token'); } catch (e) {}
 
-const READS = new Set(['me','adminStats','listUsers','listClasses','adminWork','myClasses','listMyWork']);
+const READS = new Set(['adminInit','me','adminStats','listUsers','listClasses','adminWork','myClasses','listMyWork']);
 async function api(action, data) {
   // text/plain بيمنع preflight ويشتغل من GitHub Pages. القراءات بتتعاد تلقائي لو السيرفر مشغول
   const body = JSON.stringify({action, token, data}), tries = READS.has(action) ? 3 : 1;
@@ -366,7 +367,8 @@ document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
 });
 
 async function loadAdmin() {
-  const [s, u, c] = await Promise.all([api('adminStats'), api('listUsers'), api('listClasses')]);
+  let s, u, c; const ji = await api('adminInit');
+  if (ji.ok) { s = ji.stats; u = ji.users; c = ji.classes; } else [s, u, c] = await Promise.all([api('adminStats'), api('listUsers'), api('listClasses')]);
   if (c.ok) CLASSES = (c.classes || []).map(x => ({...x, teachers: x.teachers || []})).sort((a, b) => GRADES.indexOf(a.grade) - GRADES.indexOf(b.grade) || String(a.className).localeCompare(String(b.className), 'ar'));
   if (u.ok) USERS = (u.users || []).map(x => ({...x, perms: x.perms ? String(x.perms).split(',') : []}));
   if (s.ok) {
@@ -411,12 +413,18 @@ $('bGo').onclick = async () => {
 
 /* استيراد Excel */
 const H = ['الاسم بالكامل','اسم المستخدم','كلمة السر','الدور','الصف','الفصل','الموبايل','المادة'];
-const XLS = () => typeof XLSX !== 'undefined' ? XLSX : (alert('مكتبة Excel لم تتحمل. اتأكد من الإنترنت وحدّث الصفحة'), null);
+let _xl = null;
+const XLS = () => _xl || (_xl = new Promise(res => {
+  if (typeof XLSX !== 'undefined') return res(XLSX);
+  const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  s.onload = () => res(XLSX); s.onerror = () => { _xl = null; alert('مكتبة Excel لم تتحمل. اتأكد من الإنترنت وحاول تاني'); res(null); };
+  document.head.appendChild(s);
+}));
 let pending = [];
 $('impBtn').onclick = () => { $('impFile').value = ''; $('impInfo').innerHTML = ''; $('impGo').disabled = true; pending = []; $('impDlg').showModal(); };
 $('impClose').onclick = () => $('impDlg').close();
-$('tplBtn').onclick = () => {
-  const X = XLS(); if (!X) return;
+$('tplBtn').onclick = async () => {
+  const X = await XLS(); if (!X) return;
   const wb = X.utils.book_new();
   const ws = X.utils.aoa_to_sheet([H, ['أحمد محمد علي','ahmed.m','','طالب',GRADES[0],'1','',''], ['سارة حسن','sara.h','','مدرس',GRADES[0],'1','','رياضيات']]);
   ws['!cols'] = H.map(() => ({wch: 22}));
@@ -427,7 +435,7 @@ $('tplBtn').onclick = () => {
   X.writeFile(wb, 'PPS_import_template.xlsx');
 };
 $('impFile').onchange = async e => {
-  const f = e.target.files[0]; if (!f) return; const X = XLS(); if (!X) return;
+  const f = e.target.files[0]; if (!f) return; const X = await XLS(); if (!X) return;
   const wb = X.read(await f.arrayBuffer()), raw = X.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval: '', raw: false});
   const RM = {'طالب':'student','student':'student','مدرس':'teacher','معلم':'teacher','teacher':'teacher'}, bad = [];
   pending = [];
@@ -456,8 +464,8 @@ $('impGo').onclick = async () => {
   info.innerHTML = `<div class="ok">اتضاف <b>${tot.created}</b> مستخدم جديد، واتحدّث ترتيب <b>${tot.updated}</b> موجود.</div>` +
     (tot.errors.length ? `<div class="err">${tot.errors.length} صف فشل:<br>${tot.errors.slice(0, 8).map(x => `سطر ${x.row}: ${esc(x.msg)}`).join('<br>')}</div>` : '') +
     (tot.creds.length ? `<p style="margin-top:10px">${tot.creds.length} مستخدم كلمات سرهم اتولّدت تلقائي. <b>حمّل الملف دلوقتي</b>، لأنها مش هتظهر تاني:</p><button class="mini" id="dlCred" type="button">تحميل بيانات الدخول</button>` : '');
-  if (tot.creds.length) $('dlCred').onclick = () => {
-    const X = XLS(); if (!X) return; const wb = X.utils.book_new();
+  if (tot.creds.length) $('dlCred').onclick = async () => {
+    const X = await XLS(); if (!X) return; const wb = X.utils.book_new();
     X.utils.book_append_sheet(wb, X.utils.aoa_to_sheet([['الاسم','اسم المستخدم','كلمة السر','الدور'], ...tot.creds.map(c => [c.fullName, c.username, c.password, ROLE[c.role]])]), 'بيانات الدخول');
     X.writeFile(wb, 'PPS_credentials.xlsx');
   };
