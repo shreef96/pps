@@ -163,7 +163,7 @@ textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radi
     <span id="who"></span><button id="out">خروج</button>
   </header>
   <main>
-    <nav class="tabs"><button data-t="home" class="on">نظرة عامة</button><button data-t="users" data-need="users.manage|students.manage">المستخدمين</button><button data-t="classes" data-need="classes.manage|students.manage">الفصول</button><button data-t="follow" data-need="work.view">متابعة الواجبات والامتحانات</button><button data-t="reports" data-need="students.manage">تقارير الطلاب</button><button data-t="parents" data-need="students.manage">أولياء الأمور</button><button data-t="leaves" data-need="leave.approve">الإجازات</button><button data-t="hr" data-need="employees.manage">الموظفين والحصص</button><button data-t="emp" id="tabEmp" class="hide">حصصي وإجازاتي</button></nav>
+    <nav class="tabs"><button data-t="home" class="on">نظرة عامة</button><button data-t="users" data-need="users.manage|students.manage">المستخدمين</button><button data-t="classes" data-need="classes.manage|students.manage">الفصول</button><button data-t="follow" data-need="work.view">متابعة الواجبات والامتحانات</button><button data-t="reports" data-need="students.manage">تقارير الطلاب</button><button data-t="parents" data-need="students.manage">أولياء الأمور</button><button data-t="leaves" data-need="leave.approve">الإجازات</button><button data-t="hr" data-need="employees.manage">الموظفين</button><button data-t="sch" data-need="employees.manage">جدول الحصص</button><button data-t="emp" id="tabEmp" class="hide">حصصي وإجازاتي</button></nav>
 
     <div id="t-home">
       <div class="stats" id="stats"></div>
@@ -231,30 +231,18 @@ textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radi
     </div>
 
     <div id="t-hr" class="hide">
-      <p style="color:var(--mut);line-height:1.9">ارفع ملفات تطبيق الإجازات القديم بالترتيب (1 ثم 2 ثم 3). كل ملف Excel أو CSV والصف الأول فيه العناوين. رقم العمود حسب ترتيبه: A=1 وB=2 ... وAC=29.</p>
-      <h3>1) الموظفين (شيت DATA)</h3>
-      <div class="panel">
-        <div class="add" style="grid-template-columns:repeat(auto-fit,minmax(110px,1fr))"><div><label>عمود الكود</label><input type="number" id="hcCode" value="2"></div><div><label>عمود الاسم</label><input type="number" id="hcName" value="3"></div><div><label>عمود الوظيفة</label><input type="number" id="hcJob" value="5"></div><div><label>عمود الإيميل</label><input type="number" id="hcEmail" value="29"></div></div>
-        <label>الملف</label><input type="file" id="hrEmpFile" accept=".xlsx,.xls,.csv"><div class="bar" style="margin-top:12px"><button class="btn sm" id="hrEmpGo" type="button">استيراد الموظفين</button></div>
-        <small>المدرسين اللي ليهم حساب بالفعل بيتربطوا بالاسم، والباقي بيتعمل لهم حساب بيانات دخوله بتنزل في ملف.</small><div id="hrEmpOut"></div>
-      </div>
-      <h3>2) الحصص (شيت الحصص)</h3>
-      <div class="panel">
-        <div class="add" style="grid-template-columns:repeat(auto-fit,minmax(100px,1fr))"><div><label>عمود اليوم</label><input type="number" id="hsDay" value="1"></div><div><label>عمود الفصل</label><input type="number" id="hsClass" value="3"></div><div><label>عمود المدرس</label><input type="number" id="hsTeacher" value="4"></div><div><label>عمود المادة</label><input type="number" id="hsSubject" value="5"></div><div><label>عمود الصف</label><input type="number" id="hsGrade" value="6"></div><div><label>عمود الحصة</label><input type="number" id="hsPeriod" value="7"></div></div>
-        <label>الملف</label><input type="file" id="hrSchFile" accept=".xlsx,.xls,.csv">
-        <label class="opt"><input type="checkbox" id="hsReplace" checked> مسح الحصص الحالية واستبدالها</label>
-        <label class="opt"><input type="checkbox" id="hsDerive" checked> تحديث توزيع المدرسين على الفصول من الحصص (بيضيف بس)</label>
-        <div class="bar" style="margin-top:12px"><button class="btn sm" id="hrSchGo" type="button">استيراد الحصص</button></div><div id="hrSchOut"></div>
-      </div>
-      <h3>3) سجل الإجازات القديم (اختياري)</h3>
-      <div class="panel">
-        <div class="add" style="grid-template-columns:repeat(auto-fit,minmax(100px,1fr))"><div><label>عمود التاريخ</label><input type="number" id="hlCreated" value="1"></div><div><label>عمود الكود</label><input type="number" id="hlCode" value="2"></div><div><label>عمود البداية</label><input type="number" id="hlStart" value="5"></div><div><label>عمود النهاية</label><input type="number" id="hlEnd" value="6"></div><div><label>عمود الأيام</label><input type="number" id="hlDays" value="7"></div><div><label>عمود النوع</label><input type="number" id="hlType" value="9"></div><div><label>عمود الملاحظات</label><input type="number" id="hlNotes" value="10"></div></div>
-        <label>الملف</label><input type="file" id="hrLvFile" accept=".xlsx,.xls,.csv"><div class="bar" style="margin-top:12px"><button class="btn sm" id="hrLvGo" type="button">استيراد الإجازات القديمة</button></div>
-        <small>بتتسجّل كلها "موافق عليها" لأن التطبيق القديم ما كانش فيه موافقة.</small><div id="hrLvOut"></div>
-      </div>
-      <h3>الموظفين المسجلين <small id="hrCount"></small></h3>
-      <div class="bar"><input id="hrQ" placeholder="بحث بالاسم أو الكود أو الوظيفة"></div>
-      <div class="panel tw"><table style="min-width:700px"><thead><tr><th>الكود</th><th>الاسم</th><th>الوظيفة</th><th>الإيميل</th><th>اسم المستخدم</th><th>الدور</th></tr></thead><tbody id="hrRows"></tbody></table></div>
+      <div id="hrSug"></div>
+      <h3>الموظفين <small id="hrCount"></small></h3>
+      <div class="bar"><input id="hrQ" placeholder="بحث بالاسم أو الكود أو الوظيفة" style="max-width:340px"><button class="btn" id="hrNew" type="button">+ موظف جديد</button></div>
+      <div class="panel tw"><table style="min-width:780px"><thead><tr><th>الكود</th><th>الاسم</th><th>الوظيفة</th><th>الإيميل</th><th>اسم المستخدم</th><th>الدور</th><th>الحالة</th><th></th></tr></thead><tbody id="hrRows"></tbody></table></div>
+    </div>
+
+    <div id="t-sch" class="hide">
+      <h3>جدول الحصص</h3>
+      <div class="bar"><select id="shClass" style="max-width:300px"></select><label class="opt" style="margin:0"><input type="checkbox" id="shSat"> السبت</label><input type="number" id="shPer" min="1" max="12" value="7" style="max-width:80px" title="عدد الحصص في اليوم"><small>عدد الحصص في اليوم</small></div>
+      <div id="shMsg"></div>
+      <div class="panel tw"><table id="shTbl" style="min-width:640px;text-align:center"></table></div>
+      <small>اضغط على أي خانة عشان تحدد المدرس والمادة. المدرس لازم يكون مسجل في تبويب الموظفين.</small>
     </div>
 
     <div id="t-reports" class="hide">
@@ -420,6 +408,30 @@ textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radi
   <div id="et-sched" class="hide"><div id="esBody"></div></div>
 </div>
 
+<dialog id="emDlg" class="xl"><form id="emForm">
+  <h4 id="emTitle">موظف</h4><input type="hidden" id="emUid">
+  <div class="pgrid">
+    <div><label>الاسم بالكامل</label><input id="emName" required maxlength="100"></div>
+    <div><label>اسم المستخدم</label><input id="emUser" dir="ltr" autocapitalize="none"></div>
+    <div><label id="emPwL">كلمة السر</label><input id="emPw" dir="ltr" autocomplete="new-password"></div>
+    <div id="emRoleBox"><label>الدور</label><select id="emRole"><option value="teacher">مدرس</option><option value="employee">موظف إداري</option></select></div>
+    <div><label>الوظيفة</label><input id="emJob" placeholder="مثال: مدرس رياضيات، سكرتير" maxlength="100"></div>
+    <div><label>كود الموظف (سيبه فاضي = تلقائي)</label><input id="emCode" dir="ltr"></div>
+    <div><label>الإيميل (اختياري)</label><input id="emEmail" dir="ltr"></div>
+    <div><label>الموبايل (اختياري)</label><input id="emPhone" dir="ltr" inputmode="numeric"></div>
+  </div>
+  <div id="emErr" class="err hide"></div><div id="emOk"></div>
+  <div class="row2"><button class="btn" id="emSave" type="submit">حفظ</button><button class="btn gh" id="emClose" type="button">إغلاق</button></div>
+</form></dialog>
+
+<dialog id="slDlg"><form id="slForm">
+  <h4 id="slTitle">حصة</h4>
+  <label>المدرس</label><select id="slTeacher"></select>
+  <label>المادة</label><input id="slSubject" required maxlength="60" placeholder="مثال: رياضيات">
+  <div id="slErr" class="err hide"></div>
+  <div class="row2"><button class="btn" type="submit">حفظ</button><button class="btn gh" id="slClear" type="button">مسح الحصة</button><button class="btn gh" id="slClose" type="button">إغلاق</button></div>
+</form></dialog>
+
 <script>
 if (matchMedia('(max-width:820px)').matches) document.getElementById('aboutBox').open = false;   // في الموبايل النبذة بتتفتح بزرار
 // ضع هنا رابط الـ Web App بعد النشر (ينتهي بـ /exec)
@@ -430,7 +442,7 @@ const ROLE = {admin:'أدمن', teacher:'مدرس', student:'طالب', staff:'�
 let token = null, ME = null, SU = null;
 try { token = sessionStorage.getItem('pps_token'); } catch (e) {}
 
-const READS = new Set(['empHome','myLeaves','listLeaves','listEmployees','parentHome','listParents','parentSuggestions','searchStudents','getStudentProfile','studentsReport','adminInit','me','adminStats','listUsers','listClasses','adminWork','myClasses','listMyWork']);
+const READS = new Set(['getClassSchedule','empHome','myLeaves','listLeaves','listEmployees','parentHome','listParents','parentSuggestions','searchStudents','getStudentProfile','studentsReport','adminInit','me','adminStats','listUsers','listClasses','adminWork','myClasses','listMyWork']);
 async function api(action, data) {
   // text/plain بيمنع preflight ويشتغل من GitHub Pages. القراءات بتتعاد تلقائي لو السيرفر مشغول
   const body = JSON.stringify({action, token, data}), tries = READS.has(action) ? 3 : 1;
@@ -492,13 +504,14 @@ const clsLabel = id => { const c = CLASSES.find(x => x.classId === id); return c
 
 document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
   document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
-  ['home','users','classes','follow','reports','parents','emp','leaves','hr'].forEach(t => $('t-' + t).classList.toggle('hide', t !== b.dataset.t));
+  ['home','users','classes','follow','reports','parents','emp','leaves','hr','sch'].forEach(t => $('t-' + t).classList.toggle('hide', t !== b.dataset.t));
   if (b.dataset.t === 'follow') loadFollow();
   if (b.dataset.t === 'reports') loadReport();
   if (b.dataset.t === 'parents') { loadParents(); loadSuggest(); }
   if (b.dataset.t === 'emp') mountEmp('t-emp');
   if (b.dataset.t === 'leaves') loadLvAdmin();
   if (b.dataset.t === 'hr') loadEmployees();
+  if (b.dataset.t === 'sch') { fillShClass(); loadSchedule(); }
 });
 
 async function loadAdmin() {
@@ -1306,7 +1319,7 @@ function renderSched() {
   let days = DAYS.filter(d => by[d]); if (by[today]) days = [today, ...days.filter(d => d !== today)];
   $('esBody').innerHTML = `<div class="hero"><b style="font-size:1.2rem">${esc(e.emp.name)}</b><br>${esc(e.emp.job)}${e.subjects.length ? ` · ${e.subjects.length > 1 ? 'المواد' : 'المادة'}: <b>${esc(e.subjects.join('، '))}</b>` : ''}</div>` +
     (days.length ? days.map(d => `<div class="panel dayc ${d === today ? 'today' : ''}"><h3>📅 يوم ${esc(d)}${d === today ? ' (اليوم)' : ''}</h3><div class="tw"><table style="min-width:420px"><thead><tr><th>الحصة</th><th>الفصل</th><th>الصف</th><th>المادة</th></tr></thead><tbody>
-      ${by[d].map(r => `<tr><td>${esc(r.period)}</td><td>${esc(r.className)}</td><td>${esc(r.grade)}</td><td>${esc(r.subject)}</td></tr>`).join('')}</tbody></table></div></div>`).join('') : '<div class="panel empty">مفيش حصص متسجلة ليك لسه</div>');
+      ${by[d].map(r => `<tr><td>${/^\d+$/.test(r.period) ? 'الحصة ' + esc(r.period) : esc(r.period)}</td><td>${esc(r.className)}</td><td>${esc(r.grade)}</td><td>${esc(r.subject)}</td></tr>`).join('')}</tbody></table></div></div>`).join('') : '<div class="panel empty">مفيش حصص متسجلة ليك لسه</div>');
 }
 async function loadLeaves() {
   $('ehBody').innerHTML = '<div class="empty">جاري التحميل...</div>';
@@ -1357,47 +1370,89 @@ $('lvRows').onclick = async e => {
   b.disabled = true; const j = await api('decideLeave', {id: b.dataset.id, decision: b.dataset.dec, note}); if (!j.ok) alert(j.error); loadLvAdmin();
 };
 
-/* ---------- الموظفين والحصص: استيراد من التطبيق القديم ---------- */
-async function readAoa(file) { const X = await XLS(); if (!X) return null; const wb = X.read(await file.arrayBuffer(), {cellDates: true}); return X.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, raw: false, defval: '', dateNF: 'yyyy-mm-dd'}); }
-const xc = (r, id) => String(r[(+$(id).value || 1) - 1] ?? '').trim();
-const errBox = (arr, n = 8) => arr.length ? `<div class="err">${arr.length} ملاحظة:<br>${arr.slice(0, n).map(x => `سطر ${x.row}: ${esc(x.msg)}`).join('<br>')}</div>` : '';
-async function runImport(btnId, outId, fileId, build, action, size, extra, summary) {
-  const f = $(fileId).files[0]; if (!f) return alert('اختار الملف الأول');
-  const b = $(btnId), out = $(outId); b.disabled = true; out.innerHTML = '<div class="ok">جاري قراءة الملف...</div>';
-  try {
-    const aoa = await readAoa(f); if (!aoa) return; const rows = aoa.slice(1).map((r, i) => build(r, i + 2)).filter(Boolean);
-    if (!rows.length) throw new Error('مفيش بيانات. راجع أرقام الأعمدة');
-    const tot = {errors: [], creds: [], unresolved: [], unmatchedClasses: []};
-    for (let i = 0; i < rows.length; i += size) {
-      out.innerHTML = `<div class="ok">جاري الاستيراد... ${Math.min(i + size, rows.length)} من ${rows.length}</div>`;
-      const j = await api(action, Object.assign({rows: rows.slice(i, i + size)}, extra(i))); if (!j.ok) throw new Error(j.error);
-      Object.keys(j).forEach(k => { if (Array.isArray(j[k])) tot[k] = (tot[k] || []).concat(j[k]); else if (typeof j[k] === 'number') tot[k] = (tot[k] || 0) + j[k]; });
-    }
-    out.innerHTML = summary(tot) + errBox(tot.errors); return tot;
-  } catch (x) { out.innerHTML = `<div class="err">${esc(x.message)}</div>`; } finally { b.disabled = false; }
-}
-$('hrEmpGo').onclick = async () => {
-  const tot = await runImport('hrEmpGo', 'hrEmpOut', 'hrEmpFile', (r, n) => { const o = {row: n, code: xc(r, 'hcCode'), name: xc(r, 'hcName'), job: xc(r, 'hcJob'), email: xc(r, 'hcEmail')}; return o.code || o.name ? o : null; }, 'importEmployees', 40, () => ({}),
-    t => `<div class="ok">حسابات جديدة: <b>${t.created || 0}</b> · اتربط بحسابات موجودة: <b>${t.linked || 0}</b> · اتحدّث: <b>${t.updated || 0}</b></div>` + ((t.creds || []).length ? '<p style="margin-top:10px"><b>حمّل بيانات الدخول دلوقتي</b>، كلمات السر مش هتظهر تاني: <button class="mini" id="hrCred" type="button">تحميل Excel</button></p>' : ''));
-  if (!tot) return; loadEmployees();
-  if ((tot.creds || []).length) $('hrCred').onclick = async () => { const X = await XLS(); if (!X) return; const wb = X.utils.book_new();
-    X.utils.book_append_sheet(wb, X.utils.aoa_to_sheet([['الاسم','اسم المستخدم','كلمة السر','الدور','الوظيفة'], ...tot.creds.map(c => [c.fullName, c.username, c.password, ROLE[c.role], c.job])]), 'بيانات الدخول'); X.writeFile(wb, 'PPS_employees_credentials.xlsx'); };
-};
-$('hrSchGo').onclick = () => runImport('hrSchGo', 'hrSchOut', 'hrSchFile', (r, n) => { const o = {row: n, day: xc(r, 'hsDay'), className: xc(r, 'hsClass'), teacher: xc(r, 'hsTeacher'), subject: xc(r, 'hsSubject'), grade: xc(r, 'hsGrade'), period: xc(r, 'hsPeriod')}; return o.day || o.teacher ? o : null; },
-  'importSchedule', 150, i => ({replace: i === 0 && $('hsReplace').checked, derive: $('hsDerive').checked}),
-  t => `<div class="ok">حصص اتسجلت: <b>${t.imported || 0}</b> · توزيع مدرس/فصل/مادة اتضاف: <b>${t.linked || 0}</b></div>` +
-    ((t.unresolved || []).length ? `<div class="err">مدرسين مش موجودين في الموظفين (${[...new Set(t.unresolved)].length}): ${[...new Set(t.unresolved)].slice(0, 15).map(esc).join('، ')}</div>` : '') +
-    ((t.unmatchedClasses || []).length ? `<div class="err">فصول مش مطابقة لفصول النظام (${[...new Set(t.unmatchedClasses)].length}): ${[...new Set(t.unmatchedClasses)].slice(0, 12).map(esc).join('، ')}<br><small>ضيفها من تبويب الفصول بنفس الصف والاسم، وأعد الاستيراد.</small></div>` : ''));
-$('hrLvGo').onclick = () => runImport('hrLvGo', 'hrLvOut', 'hrLvFile', (r, n) => { const o = {row: n, created: xc(r, 'hlCreated'), code: xc(r, 'hlCode'), start: xc(r, 'hlStart'), end: xc(r, 'hlEnd'), days: xc(r, 'hlDays'), type: xc(r, 'hlType'), notes: xc(r, 'hlNotes')}; return o.code || o.start ? o : null; },
-  'importLeaves', 150, () => ({}), t => `<div class="ok">إجازات قديمة اتسجلت: <b>${t.imported || 0}</b></div>`);
+/* ---------- إدارة الموظفين (صلاحية employees.manage) ---------- */
+let EML = [];
 async function loadEmployees() {
+  $('hrRows').innerHTML = '<tr><td colspan="8" class="empty">جاري التحميل...</td></tr>';
   try { const j = await api('listEmployees', {q: $('hrQ').value.trim()}); if (!j.ok) throw new Error(j.error);
-    $('hrCount').textContent = `(${j.total})`;
-    $('hrRows').innerHTML = (j.rows || []).length ? j.rows.map(x => `<tr><td>${esc(x.code)}</td><td>${esc(x.name)}</td><td>${esc(x.job)}</td><td dir="ltr" style="text-align:start">${esc(x.email)}</td><td dir="ltr" style="text-align:start">${esc(x.username)}</td><td>${ROLE[x.role] || '—'}</td></tr>`).join('') + (j.total > 60 ? '<tr><td colspan="6" class="empty">معروض أول 60. استخدم البحث</td></tr>' : '')
-      : '<tr><td colspan="6" class="empty">لسه ما اتستوردش موظفين</td></tr>'; }
-  catch (x) { $('hrRows').innerHTML = `<tr><td colspan="6" class="empty" style="color:#a11d1d">${esc(x.message)}</td></tr>`; }
+    EML = j.rows || []; $('hrCount').textContent = `(${j.total})`;
+    $('hrSug').innerHTML = j.unlinkedTotal ? `<div class="panel" style="margin-bottom:14px"><b>${j.unlinkedTotal} حساب مدرس لسه مش مسجل كموظف</b>
+      <p style="color:var(--mut);margin:6px 0">${(j.unlinked || []).map(x => esc(x.name)).join('، ')}${j.unlinkedTotal > 12 ? ' ...' : ''}<br>تسجيلهم كموظفين بيفتحلهم تبويب الحصص وطلب الإجازة، وبيظهروا في جدول الحصص.</p>
+      <button class="btn" id="hrAuto" type="button" style="width:auto;margin:0;padding:10px 18px">تسجيلهم كلهم كموظفين</button></div>` : '';
+    $('hrRows').innerHTML = EML.length ? EML.map(x => `<tr><td>${esc(x.code)}</td><td>${esc(x.name)}</td><td>${esc(x.job)}</td><td dir="ltr" style="text-align:start">${esc(x.email)}</td><td dir="ltr" style="text-align:start">${esc(x.username)}</td><td>${ROLE[x.role] || '—'}</td>
+      <td>${x.status === 'active' ? 'نشط' : '<span class="tag off">موقوف</span>'}</td>
+      <td><button class="mini" data-ee="${esc(x.userId)}">تعديل</button>${canRoleUI(x.role) ? ` <button class="mini" data-es="${esc(x.userId)}" data-st="${x.status === 'active' ? 'inactive' : 'active'}">${x.status === 'active' ? 'إيقاف' : 'تفعيل'}</button>` : ''}</td></tr>`).join('')
+      + (j.total > 80 ? '<tr><td colspan="8" class="empty">معروض أول 80. استخدم البحث</td></tr>' : '')
+      : '<tr><td colspan="8" class="empty">لسه مفيش موظفين. اضغط "موظف جديد"</td></tr>'; }
+  catch (x) { $('hrRows').innerHTML = `<tr><td colspan="8" class="empty" style="color:#a11d1d">${esc(x.message)}</td></tr>`; }
 }
 let hrT; $('hrQ').oninput = () => { clearTimeout(hrT); hrT = setTimeout(loadEmployees, 300); };
+$('hrSug').onclick = async e => { if (!e.target.closest('#hrAuto')) return; e.target.closest('#hrAuto').disabled = true; const j = await api('autoEmployees', {}); if (!j.ok) alert(j.error); loadEmployees(); };
+$('hrRows').onclick = async e => {
+  const be = e.target.closest('[data-ee]'); if (be) return openEm(EML.find(x => x.userId === be.dataset.ee));
+  const bs = e.target.closest('[data-es]'); if (!bs) return; bs.disabled = true;
+  const j = await api('setStatus', {userId: bs.dataset.es, status: bs.dataset.st}); if (!j.ok) alert(j.error); loadEmployees();
+};
+$('hrNew').onclick = () => openEm(null);
+function openEm(x) {
+  $('emUid').value = x ? x.userId : ''; $('emTitle').textContent = x ? 'تعديل موظف' : 'موظف جديد';
+  $('emName').value = x ? x.name : ''; $('emUser').value = x ? x.username : ''; $('emUser').disabled = !!x; $('emRoleBox').classList.toggle('hide', !!x); $('emRole').value = 'teacher';
+  $('emPw').value = x ? '' : rnd6(); $('emPwL').textContent = x ? 'كلمة سر جديدة (سيبها فاضية لو مش عايز تغيّرها)' : 'كلمة السر (6 أحرف أو أرقام على الأقل)';
+  $('emJob').value = x ? x.job : ''; $('emCode').value = x ? x.code : ''; $('emEmail').value = x ? x.email : ''; $('emPhone').value = x ? x.phone : '';
+  $('emErr').classList.add('hide'); $('emOk').innerHTML = ''; $('emSave').disabled = false; $('emDlg').showModal();
+}
+$('emClose').onclick = () => $('emDlg').close();
+$('emForm').onsubmit = async e => {
+  e.preventDefault(); const er = $('emErr'), b = $('emSave'), uid = $('emUid').value; er.classList.add('hide'); b.disabled = true;
+  try { const pw = $('emPw').value.trim();
+    const j = await api('saveEmployee', {userId: uid || undefined, fullName: $('emName').value, username: $('emUser').value, password: pw, role: $('emRole').value, job: $('emJob').value, code: $('emCode').value, email: $('emEmail').value, phone: $('emPhone').value});
+    if (!j.ok) throw new Error(j.error);
+    $('emOk').innerHTML = uid ? '<div class="ok">تم حفظ التعديل</div>' : `<div class="ok">تم إنشاء الحساب.<br>اسم المستخدم: <b dir="ltr">${esc($('emUser').value)}</b> · كلمة السر: <b dir="ltr">${esc(pw || j.password)}</b><br><small>سجّلها وادّيها للموظف، مش هتظهر تاني.</small></div>`;
+    loadEmployees(); if (uid) b.disabled = false;
+  } catch (x) { er.textContent = x.message; er.classList.remove('hide'); b.disabled = false; }
+};
+
+/* ---------- جدول الحصص (شبكة لكل فصل) ---------- */
+let SHD = null, SLOT = null;
+function fillShClass() {
+  const cur = $('shClass').value;
+  $('shClass').innerHTML = '<option value="">— اختار الفصل —</option>' + CLASSES.map(c => `<option value="${esc(c.classId)}">${esc(c.grade)} / ${esc(c.className)}</option>`).join(''); $('shClass').value = cur;
+}
+async function loadSchedule() {
+  const id = $('shClass').value;
+  if (!id) { SHD = null; $('shTbl').innerHTML = ''; $('shMsg').innerHTML = '<div class="panel empty">اختار الفصل عشان يظهر جدوله</div>'; return; }
+  $('shMsg').innerHTML = '';
+  try { const j = await api('getClassSchedule', {classId: id}); if (!j.ok) throw new Error(j.error); SHD = j; renderSchedGrid(); }
+  catch (x) { $('shMsg').innerHTML = `<div class="err">${esc(x.message)}</div>`; }
+}
+function renderSchedGrid() {
+  if (!SHD) return; const days = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس'].concat($('shSat').checked ? ['السبت'] : []);
+  const maxSlot = Math.max(0, ...SHD.slots.map(s => s.period)), n = Math.min(12, Math.max(+$('shPer').value || 7, maxSlot)), by = {};
+  SHD.slots.forEach(s => by[s.day + '|' + s.period] = s);
+  if (!SHD.teachers.length) $('shMsg').innerHTML = '<div class="err">مفيش مدرسين مسجلين كموظفين. سجّلهم من تبويب الموظفين الأول.</div>';
+  let t = '<thead><tr><th>الحصة</th>' + days.map(d => `<th>${d}</th>`).join('') + '</tr></thead><tbody>';
+  for (let p = 1; p <= n; p++) t += `<tr><th>${p}</th>` + days.map(d => { const s = by[d + '|' + p];
+    return `<td><button class="mini" style="width:100%;min-height:46px;${s ? 'background:#eaf3ff;border-color:#9ec1f0' : ''}" data-day="${d}" data-p="${p}">${s ? `<b>${esc(s.subject)}</b><br><small>${esc(s.teacher)}</small>` : '+'}</button></td>`; }).join('') + '</tr>';
+  $('shTbl').innerHTML = t + '</tbody>';
+}
+$('shClass').onchange = loadSchedule; $('shSat').onchange = renderSchedGrid; $('shPer').onchange = renderSchedGrid;
+$('shTbl').onclick = e => {
+  const b = e.target.closest('[data-day]'); if (!b || !SHD) return;
+  SLOT = {day: b.dataset.day, period: +b.dataset.p}; const s = SHD.slots.find(x => x.day === SLOT.day && x.period === SLOT.period);
+  $('slTitle').textContent = `يوم ${SLOT.day} · الحصة ${SLOT.period}`;
+  $('slTeacher').innerHTML = SHD.teachers.map(t => `<option value="${esc(t.userId)}">${esc(t.name)}</option>`).join('');
+  $('slTeacher').value = s ? s.teacherUserId : (SHD.teachers[0] || {}).userId || ''; $('slSubject').value = s ? s.subject : '';
+  $('slClear').classList.toggle('hide', !s); $('slErr').classList.add('hide'); $('slDlg').showModal();
+};
+$('slClose').onclick = () => $('slDlg').close();
+async function saveSlot(clear) {
+  const er = $('slErr'); er.classList.add('hide');
+  try { const j = await api('setSlot', {classId: $('shClass').value, day: SLOT.day, period: SLOT.period, teacherUserId: clear ? '' : $('slTeacher').value, subject: $('slSubject').value});
+    if (!j.ok) throw new Error(j.error); $('slDlg').close(); loadSchedule(); }
+  catch (x) { er.textContent = x.message; er.classList.remove('hide'); }
+}
+$('slForm').onsubmit = e => { e.preventDefault(); saveSlot(false); };
+$('slClear').onclick = () => saveSlot(true);
 
 /* شريط أخطاء واضح لو حصل خطأ غير متوقع في الصفحة (بيساعد في تحديد المشكلة بالظبط) */
 function showErr(msg) {
