@@ -163,7 +163,7 @@ textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radi
     <span id="who"></span><button id="out">خروج</button>
   </header>
   <main>
-    <nav class="tabs"><button data-t="home" class="on">نظرة عامة</button><button data-t="users" data-need="users.manage|students.manage">المستخدمين</button><button data-t="classes" data-need="classes.manage|students.manage">الفصول</button><button data-t="follow" data-need="work.view">متابعة الواجبات والامتحانات</button><button data-t="reports" data-need="students.manage">تقارير الطلاب</button><button data-t="parents" data-need="students.manage">أولياء الأمور</button><button data-t="leaves" data-need="leave.approve">الإجازات</button><button data-t="hr" data-need="employees.manage">الموظفين</button><button data-t="sch" data-need="employees.manage">جدول الحصص</button><button data-t="emp" id="tabEmp" class="hide">حصصي وإجازاتي</button></nav>
+    <nav class="tabs"><button data-t="home" class="on">نظرة عامة</button><button data-t="users" data-need="users.manage|students.manage|employees.manage">المستخدمين</button><button data-t="classes" data-need="classes.manage|students.manage">الفصول</button><button data-t="follow" data-need="work.view">متابعة الواجبات والامتحانات</button><button data-t="reports" data-need="students.manage">تقارير الطلاب</button><button data-t="leaves" data-need="leave.approve">الإجازات</button><button data-t="sch" data-need="employees.manage">جدول الحصص</button><button data-t="emp" id="tabEmp" class="hide">حصصي وإجازاتي</button></nav>
 
     <div id="t-home">
       <div class="stats" id="stats"></div>
@@ -174,6 +174,7 @@ textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radi
     </div>
 
     <div id="t-users" class="hide">
+      <div id="pgSug"></div>
       <h3>إضافة مستخدم</h3>
       <form class="panel add" id="addForm">
         <div><label>الاسم بالكامل</label><input name="fullName" required></div>
@@ -183,6 +184,8 @@ textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radi
           <select name="role"><option value="teacher">مدرس</option><option value="student">طالب</option><option value="admin">أدمن</option></select></div>
         <div><label>الموبايل (اختياري)</label><input name="phone" dir="ltr"></div>
         <div id="aProfile" class="hide" style="grid-column:1/-1"></div>
+        <div id="aEmp" class="hide" style="grid-column:1/-1"></div>
+        <div id="aKidsBox" class="hide" style="grid-column:1/-1"></div>
         <div id="aPerms" class="hide" style="grid-column:1/-1"></div>
         <button class="btn" type="submit">إضافة</button>
       </form>
@@ -190,7 +193,7 @@ textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radi
       <h3>المستخدمين</h3>
       <div class="bar">
         <input id="fq" placeholder="بحث بالاسم أو اسم المستخدم">
-        <select id="fRole"><option value="">كل الأدوار</option><option value="student">الطلاب</option><option value="teacher">المدرسين</option><option value="employee">الموظفين</option><option value="admin">الأدمن</option></select>
+        <select id="fRole"><option value="">كل الأدوار</option><option value="student">الطلاب</option><option value="teacher">المدرسين</option><option value="employee">الموظفين الإداريين</option><option value="parent">أولياء الأمور</option><option value="staff">موظفي الإدارة</option><option value="admin">الأدمن</option></select>
         <select id="fClass"></select>
         <button class="mini ic" id="impBtn" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m0 0l-4 4m4-4l4 4M4 20h16"/></svg> استيراد من Excel</button>
       </div>
@@ -215,13 +218,6 @@ textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radi
         <tbody id="classes"></tbody></table></div>
     </div>
   
-    <div id="t-parents" class="hide">
-      <div id="pgSug"></div>
-      <h3>أولياء الأمور</h3>
-      <div class="bar"><input id="pgQ" placeholder="بحث: اسم ولي الأمر أو اسم المستخدم أو الموبايل" style="max-width:360px"><button class="btn" id="pgNew" type="button">+ ولي أمر جديد</button><small id="pgCount"></small></div>
-      <div class="panel tw" style="margin-top:12px"><table style="min-width:720px"><thead><tr><th>ولي الأمر</th><th>اسم المستخدم</th><th>الموبايل</th><th>الأولاد</th><th>الحالة</th><th></th></tr></thead><tbody id="pgRows"></tbody></table></div>
-    </div>
-
     <div id="t-emp" class="hide"></div>
 
     <div id="t-leaves" class="hide">
@@ -230,19 +226,12 @@ textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radi
       <div class="panel tw"><table style="min-width:860px"><thead><tr><th>الموظف</th><th>الوظيفة</th><th>النوع</th><th>الفترة</th><th>الأيام</th><th>ملاحظات</th><th>تاريخ الطلب</th><th>الحالة</th><th></th></tr></thead><tbody id="lvRows"></tbody></table></div>
     </div>
 
-    <div id="t-hr" class="hide">
-      <div id="hrSug"></div>
-      <h3>الموظفين <small id="hrCount"></small></h3>
-      <div class="bar"><input id="hrQ" placeholder="بحث بالاسم أو الكود أو الوظيفة" style="max-width:340px"><button class="btn" id="hrNew" type="button">+ موظف جديد</button></div>
-      <div class="panel tw"><table style="min-width:780px"><thead><tr><th>الكود</th><th>الاسم</th><th>الوظيفة</th><th>الإيميل</th><th>اسم المستخدم</th><th>الدور</th><th>الحالة</th><th></th></tr></thead><tbody id="hrRows"></tbody></table></div>
-    </div>
-
     <div id="t-sch" class="hide">
       <h3>جدول الحصص</h3>
       <div class="bar"><select id="shClass" style="max-width:300px"></select><label class="opt" style="margin:0"><input type="checkbox" id="shSat"> السبت</label><input type="number" id="shPer" min="1" max="12" value="7" style="max-width:80px" title="عدد الحصص في اليوم"><small>عدد الحصص في اليوم</small></div>
       <div id="shMsg"></div>
       <div class="panel tw"><table id="shTbl" style="min-width:640px;text-align:center"></table></div>
-      <small>اضغط على أي خانة عشان تحدد المدرس والمادة. المدرس لازم يكون مسجل في تبويب الموظفين.</small>
+      <small>اضغط على أي خانة عشان تحدد المدرس والمادة. المدرسين اللي بتختار منهم هم حسابات المدرسين في تبويب المستخدمين.</small>
     </div>
 
     <div id="t-reports" class="hide">
@@ -293,6 +282,8 @@ textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radi
     <label>كلمة سر جديدة (سيبها فاضية لو مش عايز تغيّرها)</label><input name="password" dir="ltr" autocomplete="new-password">
     <div id="eProfile" class="hide"></div>
     <div id="eParents" class="hide" style="margin-top:12px;color:var(--mut)"></div>
+    <div id="eEmp" class="hide"></div>
+    <div id="eKidsBox" class="hide"></div>
     <div id="ePerms" class="hide"></div>
     <div id="eerr" class="err hide"></div>
     <div class="row2"><button class="btn" id="esave" type="submit">حفظ التعديلات</button><button class="btn gh" id="ecancel" type="button">إلغاء</button></div>
@@ -373,20 +364,7 @@ textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radi
   <main><div class="bar" id="pvKids" style="margin-top:0"></div><div id="pvBody"></div></main>
 </section>
 
-<dialog id="pcDlg" class="xl"><form id="pcForm">
-  <h4 id="pcTitle">ولي أمر</h4>
-  <div class="pgrid">
-    <div><label>الاسم</label><input id="pcName" required maxlength="100"></div>
-    <div><label>اسم المستخدم</label><input id="pcUser" dir="ltr" required autocapitalize="none"></div>
-    <div><label>الموبايل</label><input id="pcPhone" dir="ltr" inputmode="numeric"></div>
-    <div><label id="pcPwL">كلمة السر</label><input id="pcPw" dir="ltr" autocomplete="new-password"></div>
-  </div>
-  <label>الأولاد المربوطين</label><div id="pcKids" style="min-height:30px"></div>
-  <label>إضافة طالب</label><input id="pcSq" placeholder="ابحث باسم الطالب أو اسم المستخدم أو الكود أو اسم ولي الأمر">
-  <div class="scroll" id="pcRes"></div>
-  <div id="pcErr" class="err hide"></div><div id="pcOk"></div>
-  <div class="row2"><button class="btn" id="pcSave" type="submit">حفظ</button><button class="btn gh" id="pcClose" type="button">إغلاق</button></div>
-</form></dialog>
+
 
 <section id="employeeView" class="hide">
   <header class="top"><img src="logo.png" alt=""><b>بوابة الموظف</b><span class="sp"></span><span id="ewho"></span><button id="out5">خروج</button></header>
@@ -407,22 +385,6 @@ textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radi
   </form></div>
   <div id="et-sched" class="hide"><div id="esBody"></div></div>
 </div>
-
-<dialog id="emDlg" class="xl"><form id="emForm">
-  <h4 id="emTitle">موظف</h4><input type="hidden" id="emUid">
-  <div class="pgrid">
-    <div><label>الاسم بالكامل</label><input id="emName" required maxlength="100"></div>
-    <div><label>اسم المستخدم</label><input id="emUser" dir="ltr" autocapitalize="none"></div>
-    <div><label id="emPwL">كلمة السر</label><input id="emPw" dir="ltr" autocomplete="new-password"></div>
-    <div id="emRoleBox"><label>الدور</label><select id="emRole"><option value="teacher">مدرس</option><option value="employee">موظف إداري</option></select></div>
-    <div><label>الوظيفة</label><input id="emJob" placeholder="مثال: مدرس رياضيات، سكرتير" maxlength="100"></div>
-    <div><label>كود الموظف (سيبه فاضي = تلقائي)</label><input id="emCode" dir="ltr"></div>
-    <div><label>الإيميل (اختياري)</label><input id="emEmail" dir="ltr"></div>
-    <div><label>الموبايل (اختياري)</label><input id="emPhone" dir="ltr" inputmode="numeric"></div>
-  </div>
-  <div id="emErr" class="err hide"></div><div id="emOk"></div>
-  <div class="row2"><button class="btn" id="emSave" type="submit">حفظ</button><button class="btn gh" id="emClose" type="button">إغلاق</button></div>
-</form></dialog>
 
 <dialog id="slDlg"><form id="slForm">
   <h4 id="slTitle">حصة</h4>
@@ -482,7 +444,7 @@ $('loginForm').onsubmit = async e => {
 
 function enter(user) {
   if (user.role === 'admin' || user.role === 'staff') { ME = user; applyPerms(); show('admin'); $('who').textContent = user.fullName; loadAdmin(); }
-  else if (user.role === 'teacher') { show('teacher'); $('ttEmp').classList.toggle('hide', !user.emp); loadTeacher(user); }
+  else if (user.role === 'teacher') { show('teacher'); $('ttEmp').classList.remove('hide'); loadTeacher(user); }
   else if (user.role === 'employee') { show('employee'); $('ewho').textContent = user.fullName; mountEmp('empHostE'); }
   else if (user.role === 'parent') { show('parent'); loadParent(user); }
   else if (user.role === 'student') { SU = user; show('student'); loadStudent(user); }
@@ -504,13 +466,12 @@ const clsLabel = id => { const c = CLASSES.find(x => x.classId === id); return c
 
 document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
   document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
-  ['home','users','classes','follow','reports','parents','emp','leaves','hr','sch'].forEach(t => $('t-' + t).classList.toggle('hide', t !== b.dataset.t));
+  ['home','users','classes','follow','reports','emp','leaves','sch'].forEach(t => $('t-' + t).classList.toggle('hide', t !== b.dataset.t));
   if (b.dataset.t === 'follow') loadFollow();
   if (b.dataset.t === 'reports') loadReport();
-  if (b.dataset.t === 'parents') { loadParents(); loadSuggest(); }
+  if (b.dataset.t === 'users') loadSuggest();
   if (b.dataset.t === 'emp') mountEmp('t-emp');
   if (b.dataset.t === 'leaves') loadLvAdmin();
-  if (b.dataset.t === 'hr') loadEmployees();
   if (b.dataset.t === 'sch') { fillShClass(); loadSchedule(); }
 });
 
@@ -541,7 +502,7 @@ function renderUsers() {
     && (!fc || (fc === '__none' ? x.role === 'student' && !x.classId : x.classId === fc)));
   $('users').innerHTML = list.slice(0, 300).map(x => `<tr><td>${x.role === 'student' && P('students.manage') ? `<input type="checkbox" class="sel" data-id="${esc(x.userId)}" style="width:auto" ${SEL.has(x.userId) ? 'checked' : ''}>` : ''}</td>
     <td>${esc(x.fullName)}</td><td dir="ltr" style="text-align:start">${esc(x.username)}</td>
-    <td><span class="tag ${x.role}">${ROLE[x.role]}</span></td><td>${x.role === 'student' ? esc(clsLabel(x.classId)) : x.role === 'staff' ? `<small>${esc(permText(x.perms))}</small>` : '—'}</td>
+    <td><span class="tag ${x.role}">${ROLE[x.role]}</span>${x.empCode ? `<br><small>كود ${esc(x.empCode)}</small>` : ''}</td><td>${x.role === 'student' ? esc(clsLabel(x.classId)) : x.role === 'parent' ? `<small>${esc((x.kids || []).map(k => k.name).join('، ') || 'من غير أولاد لسه')}</small>` : x.role === 'staff' ? `<small>${esc(permText(x.perms))}</small>` : x.job ? `<small>${esc(x.job)}</small>` : '—'}</td>
     <td>${x.status === 'active' ? 'نشط' : '<span class="tag off">موقوف</span>'}</td><td>${fmt(x.lastLogin)}</td>
     <td>${canRoleUI(x.role) ? `<button class="mini" data-act="edit" data-id="${esc(x.userId)}">تعديل</button>
     <button class="mini" data-act="st" data-id="${esc(x.userId)}" data-st="${x.status === 'active' ? 'inactive' : 'active'}">${x.status === 'active' ? 'إيقاف' : 'تفعيل'}</button>` : '—'}</td></tr>`).join('')
@@ -648,38 +609,61 @@ $('users').onclick = async e => {
   if (!j.ok) alert(j.error);
   loadAdmin();
 };
-const toggleCls = () => { const r = $('editForm').role.value; $('clsRow').classList.toggle('hide', r !== 'student' || !P('students.manage')); $('ePerms').classList.toggle('hide', r !== 'staff'); $('eProfile').classList.toggle('hide', r !== 'student' || !P('students.manage')); $('eParents').classList.toggle('hide', r !== 'student' || !P('students.manage')); };
+const EMPROLES = ['teacher','employee','staff','admin'];
+const toggleCls = () => { const r = $('editForm').role.value; $('clsRow').classList.toggle('hide', r !== 'student' || !P('students.manage')); $('ePerms').classList.toggle('hide', r !== 'staff');
+  $('eProfile').classList.toggle('hide', r !== 'student' || !P('students.manage')); $('eParents').classList.toggle('hide', r !== 'student' || !P('students.manage'));
+  $('eEmp').classList.toggle('hide', !(EMPROLES.includes(r) && P('employees.manage'))); $('eKidsBox').classList.toggle('hide', r !== 'parent' || !P('students.manage')); };
+function toggleAdd() { const r = $('addForm').role.value; $('aPerms').classList.toggle('hide', r !== 'staff'); $('aProfile').classList.toggle('hide', r !== 'student' || !P('students.manage'));
+  $('aEmp').classList.toggle('hide', !(EMPROLES.includes(r) && P('employees.manage'))); $('aKidsBox').classList.toggle('hide', r !== 'parent' || !P('students.manage')); }
 $('editForm').role.onchange = toggleCls;
 function openEdit(id) {
   const u = USERS.find(x => x.userId === id), f = $('editForm');
-  f.userId.value = id; f.fullName.value = u.fullName; f.username.value = u.username; f.phone.value = u.phone || ''; f.role.value = u.role; f.password.value = '';
+  f.userId.value = id; f.fullName.value = u.fullName; f.username.value = u.username; f.phone.value = u.phone || ''; f.password.value = '';
+  if (u.role === 'parent') { f.role.innerHTML = '<option value="parent">ولي أمر</option>'; f.role.disabled = true; }
+  else { f.role.disabled = false; if (!f.role.querySelector(`option[value="${u.role}"]`)) f.role.insertAdjacentHTML('beforeend', `<option value="${u.role}">${ROLE[u.role]}</option>`); }
+  if (u.role === 'parent' || f.role.options.length) f.role.value = u.role;
   f.classId.innerHTML = '<option value="">— بدون فصل —</option>' + CLASSES.map(c => `<option value="${esc(c.classId)}">${esc(c.grade)} / ${esc(c.className)}</option>`).join('');
   f.classId.value = u.classId || ''; setPerms('ePerms', u.perms);
-  setProfile('eProfile', DEF_PROF); $('eProfile').dataset.ok = u.role === 'student' ? '' : '1';
-  if (u.role === 'student' && P('students.manage')) api('getStudentProfile', {userId: id}).then(j => { if (j.ok) { setProfile('eProfile', j.profile); $('eProfile').dataset.ok = '1'; $('eParents').textContent = (j.parents || []).length ? 'أولياء الأمور المربوطين: ' + j.parents.map(x => x.name + ' (' + x.username + ')').join('، ') : 'مش مربوط بولي أمر لسه (من تبويب أولياء الأمور)'; } });
+  setProfile('eProfile', DEF_PROF); $('eProfile').dataset.ok = u.role === 'student' ? '' : '1'; $('eParents').textContent = '';
+  if (u.role === 'student' && P('students.manage')) api('getStudentProfile', {userId: id}).then(j => { if (j.ok) { setProfile('eProfile', j.profile); $('eProfile').dataset.ok = '1'; $('eParents').textContent = (j.parents || []).length ? 'أولياء الأمور المربوطين: ' + j.parents.map(x => x.name + ' (' + x.username + ')').join('، ') : 'مش مربوط بولي أمر لسه. اربطه من إضافة أو تعديل ولي الأمر'; } });
+  setEmp('eEmp', {code: u.empCode, job: u.job, email: u.email}); KP.ek = (u.kids || []).map(k => ({id: k.id, name: k.name})); renderKids('ek');
   toggleCls(); $('eerr').classList.add('hide'); $('editDlg').showModal();
 }
 $('ecancel').onclick = () => $('editDlg').close();
 $('editForm').onsubmit = async e => {
   e.preventDefault();
-  const d = Object.fromEntries(new FormData(e.target)), er = $('eerr'), btn = $('esave');
-  btn.disabled = true; er.classList.add('hide');
-  d.perms = getPerms('ePerms');
-  let j = await api('updateUser', d);
-  if (j.ok && P('students.manage')) j = await api('setStudentClass', {userId: d.userId, classId: d.role === 'student' ? d.classId : ''});
-  if (j.ok && d.role === 'student' && P('students.manage') && $('eProfile').dataset.ok === '1') j = await api('saveStudentProfile', {userId: d.userId, profile: getProfile('eProfile')});
+  const d = Object.fromEntries(new FormData(e.target)), er = $('eerr'), btn = $('esave'), u = USERS.find(x => x.userId === d.userId), em = getEmp('eEmp');
+  btn.disabled = true; er.classList.add('hide'); let j;
+  try {
+    if (u.role === 'parent') j = await api('saveParent', {userId: d.userId, fullName: d.fullName, username: d.username, password: d.password, phone: d.phone, kids: KP.ek.map(k => k.id)});
+    else {
+      d.perms = getPerms('ePerms'); j = await api('updateUser', d);
+      if (j.ok && P('students.manage')) j = await api('setStudentClass', {userId: d.userId, classId: d.role === 'student' ? d.classId : ''});
+      if (j.ok && d.role === 'student' && P('students.manage') && $('eProfile').dataset.ok === '1') j = await api('saveStudentProfile', {userId: d.userId, profile: getProfile('eProfile')});
+      if (j.ok && EMPROLES.includes(d.role) && P('employees.manage') && (em.code || em.job || em.email || u.empCode)) j = await api('saveEmployee', Object.assign({userId: d.userId}, em));
+    }
+  } catch (x) { j = {ok: false, error: x.message}; }
   btn.disabled = false;
   if (!j.ok) { er.textContent = j.error; er.classList.remove('hide'); return; }
   $('editDlg').close(); loadAdmin();
 };
 $('addForm').onsubmit = async e => {
   e.preventDefault();
-  const f = e.target, btn = f.querySelector('button'), m = $('amsg');
-  btn.disabled = true; m.innerHTML = '';
-  const j = await api('addUser', Object.assign(Object.fromEntries(new FormData(f)), {perms: getPerms('aPerms'), profile: $('addForm').role.value === 'student' ? getProfile('aProfile') : null}));
+  const f = e.target, btn = f.querySelector('button[type=submit]'), m = $('amsg'), d = Object.fromEntries(new FormData(f)), role = d.role, em = getEmp('aEmp');
+  btn.disabled = true; m.innerHTML = ''; let j;
+  try {
+    if (role === 'parent') j = await api('saveParent', {fullName: d.fullName, username: d.username, password: d.password, phone: d.phone, kids: KP.ak.map(k => k.id)});
+    else {
+      d.perms = getPerms('aPerms'); d.profile = role === 'student' ? getProfile('aProfile') : null; j = await api('addUser', d);
+      if (j.ok && j.userId && EMPROLES.includes(role) && P('employees.manage') && (em.code || em.job || em.email)) {
+        const r2 = await api('saveEmployee', Object.assign({userId: j.userId}, em));
+        if (!r2.ok) j = {ok: false, error: 'اتعمل الحساب لكن بيانات الوظيفة فيها مشكلة: ' + r2.error + '. افتح تعديل المستخدم وكمّلها'};
+      }
+    }
+  } catch (x) { j = {ok: false, error: x.message}; }
   btn.disabled = false;
   m.innerHTML = j.ok ? '<div class="ok">تمت إضافة المستخدم</div>' : `<div class="err">${esc(j.error)}</div>`;
-  if (j.ok) { f.reset(); f.role.onchange(); setProfile('aProfile', DEF_PROF); loadAdmin(); }
+  if (j.ok) { f.reset(); setProfile('aProfile', DEF_PROF); setEmp('aEmp', {}); KP.ak = []; renderKids('ak'); f.role.onchange(); loadAdmin(); }
 };
 
 /* الفصول */
@@ -884,7 +868,7 @@ $('awRefresh').onclick = () => loadFollow(true);
 const PL = {'classes.manage':'إدارة الفصول وتوزيع المدرسين','students.manage':'تسجيل الطلاب وتوزيعهم على الفصول','users.manage':'إنشاء وإدارة حسابات المدرسين والطلاب','work.view':'متابعة الواجبات والامتحانات','leave.approve':'اعتماد طلبات الإجازات','employees.manage':'بيانات الموظفين والحصص'};
 const PRESETS = {'مدير المدرسة':['work.view','leave.approve'],'شؤون الطلاب':['classes.manage','students.manage'],'IT':['users.manage'],'الموارد البشرية':['leave.approve','employees.manage']};
 const P = p => !!ME && (ME.role === 'admin' || (ME.role === 'staff' && (ME.perms || []).includes(p)));
-const canRoleUI = r => !!ME && (ME.role === 'admin' || (r === 'student' && (P('students.manage') || P('users.manage'))) || (r === 'teacher' && P('users.manage')) || (r === 'employee' && (P('users.manage') || P('employees.manage'))));
+const canRoleUI = r => !!ME && (ME.role === 'admin' || (r === 'student' && (P('students.manage') || P('users.manage'))) || (r === 'teacher' && (P('users.manage') || P('employees.manage'))) || (r === 'employee' && (P('users.manage') || P('employees.manage'))) || (r === 'parent' && (P('students.manage') || P('users.manage'))));
 const permText = a => (a || []).map(p => PL[p] || p).join('، ') || 'بدون صلاحيات';
 const getPerms = id => [...$(id).querySelectorAll('.pm:checked')].map(x => x.value);
 const setPerms = (id, a) => $(id).querySelectorAll('.pm').forEach(x => x.checked = (a || []).includes(x.value));
@@ -893,13 +877,13 @@ const setPerms = (id, a) => $(id).querySelectorAll('.pm').forEach(x => x.checked
     <div class="chk">${Object.keys(PL).map(p => `<label class="ri pk"><input type="checkbox" class="pm" value="${p}"><span>${PL[p]}</span></label>`).join('')}</div>`;
   $(id).onclick = e => { const b = e.target.closest('[data-preset]'); if (b) setPerms(id, PRESETS[b.dataset.preset]); };
 });
-$('addForm').role.onchange = () => { const r = $('addForm').role.value; $('aPerms').classList.toggle('hide', r !== 'staff'); $('aProfile').classList.toggle('hide', r !== 'student' || !P('students.manage')); };
+$('addForm').role.onchange = () => toggleAdd();
 function applyPerms() {
   document.querySelectorAll('[data-need]').forEach(el => el.classList.toggle('nope', !el.dataset.need.split('|').some(P)));
   $('tabEmp').classList.toggle('hide', !ME.emp);
-  const roles = [['teacher','مدرس'],['employee','موظف'],['student','طالب'],['staff','موظف إدارة'],['admin','أدمن']].filter(([r]) => (r === 'staff' || r === 'admin') ? ME.role === 'admin' : canRoleUI(r));
+  const roles = [['student','طالب'],['teacher','مدرس'],['employee','موظف إداري'],['parent','ولي أمر'],['staff','موظف إدارة (بصلاحيات)'],['admin','أدمن']].filter(([r]) => (r === 'staff' || r === 'admin') ? ME.role === 'admin' : canRoleUI(r));
   const opts = roles.map(([v, t]) => `<option value="${v}">${t}</option>`).join('');
-  $('addForm').role.innerHTML = opts; $('editForm').role.innerHTML = opts; $('addForm').role.onchange();
+  $('addForm').role.innerHTML = opts; $('editForm').role.innerHTML = roles.filter(([r]) => r !== 'parent').map(([v, t]) => `<option value="${v}">${t}</option>`).join(''); $('addForm').role.onchange();
   document.querySelector('.tabs button[data-t="home"]').click();
 }
 
@@ -1184,91 +1168,6 @@ $('rpPdf').onclick = () => {
   w.document.close(); w.focus(); setTimeout(() => w.print(), 600);
 };
 
-/* ---------- أولياء الأمور (الأدمن وشؤون الطلاب) ---------- */
-let PG = [], PCK = [], pcId = '';
-const rnd6 = () => String(Math.floor(100000 + Math.random() * 900000));
-let pgT; $('pgQ').oninput = () => { clearTimeout(pgT); pgT = setTimeout(loadParents, 300); };
-async function loadParents() {
-  $('pgRows').innerHTML = '<tr><td colspan="6" class="empty">جاري التحميل...</td></tr>';
-  try { const j = await api('listParents', {q: $('pgQ').value.trim()}); if (!j.ok) throw new Error(j.error); PG = j.parents || [];
-    $('pgCount').textContent = `${j.total} ولي أمر${j.shown < j.total ? ` (معروض ${j.shown})` : ''}`; renderParents(); }
-  catch (x) { $('pgRows').innerHTML = `<tr><td colspan="6" class="empty" style="color:#a11d1d">${esc(x.message)}</td></tr>`; }
-}
-function renderParents() {
-  $('pgRows').innerHTML = PG.length ? PG.map(p => `<tr><td>${esc(p.fullName)}</td><td dir="ltr" style="text-align:start">${esc(p.username)}</td><td dir="ltr" style="text-align:start">${esc(p.phone)}</td>
-    <td>${p.kids.map(k => `<span class="tag teacher kid">${esc(k.name)}</span>`).join('') || '<small>مفيش</small>'}</td>
-    <td>${p.status === 'active' ? 'نشط' : '<span class="tag off">موقوف</span>'}</td>
-    <td><button class="mini" data-pe="${esc(p.userId)}">تعديل</button> <button class="mini" data-ps="${esc(p.userId)}" data-st="${p.status === 'active' ? 'inactive' : 'active'}">${p.status === 'active' ? 'إيقاف' : 'تفعيل'}</button></td></tr>`).join('')
-    : '<tr><td colspan="6" class="empty">مفيش أولياء أمور. اضغط "ولي أمر جديد" أو استخدم الإنشاء التلقائي فوق</td></tr>';
-}
-$('pgRows').onclick = async e => {
-  const be = e.target.closest('[data-pe]'); if (be) return openPc(PG.find(p => p.userId === be.dataset.pe));
-  const bs = e.target.closest('[data-ps]'); if (!bs) return; bs.disabled = true;
-  const j = await api('setStatus', {userId: bs.dataset.ps, status: bs.dataset.st}); if (!j.ok) alert(j.error); loadParents();
-};
-$('pgNew').onclick = () => openPc(null);
-async function loadSuggest() {
-  const box = $('pgSug'); box.innerHTML = '';
-  try { const j = await api('parentSuggestions'); if (!j.ok || !j.totalKids) return;
-    box.innerHTML = `<div class="panel" style="margin-bottom:14px"><b>${j.totalKids} طالب لسه مش مربوطين بولي أمر</b> <small>(${j.totalGroups} رقم موبايل مختلف)</small>
-      <p style="color:var(--mut);margin:6px 0">الإنشاء التلقائي بيعمل حساب لكل رقم موبايل ولي أمر: اسم المستخدم هو الرقم، وكلمة السر عشوائية، وبيربط الإخوات (نفس الرقم) بحساب واحد.</p>
-      <button class="btn" id="pgAuto" type="button" style="width:auto;margin:0;padding:10px 18px">إنشاء الحسابات تلقائي</button>
-      ${j.groups.length ? `<h4 style="margin:14px 0 4px">إخوات محتمَلين (${j.groups.length})</h4>` + j.groups.slice(0, 10).map((g, i) => `<div class="ri"><span>${g.kids.map(k => esc(k.name)).join(' + ')} <small dir="ltr">${esc(g.phone)}</small></span><button class="mini" data-sg="${i}">إنشاء حساب لهم</button></div>`).join('') : ''}</div>`;
-    SG = j.groups; $('pgAuto').onclick = autoAll;
-  } catch (x) {}
-}
-let SG = [];
-$('pgSug').onclick = e => { const b = e.target.closest('[data-sg]'); if (b) { const g = SG[+b.dataset.sg]; openPc(null, {name: g.guardian, username: g.phone, phone: g.phone, kids: g.kids}); } };
-async function autoAll() {
-  if (!confirm('هيتعمل حساب ولي أمر لكل رقم موبايل ولي أمر متسجل للطلاب، ويتربط الإخوات تلقائي. كلمات السر بتظهر مرة واحدة بس. تكمّل؟')) return;
-  const b = $('pgAuto'), tot = {created: 0, linked: 0, creds: []}; b.disabled = true;
-  try {
-    for (let n = 0; n < 40; n++) {
-      b.textContent = `جاري الإنشاء... (${tot.created})`;
-      const j = await api('autoParents', {}); if (!j.ok) throw new Error(j.error);
-      tot.created += j.created; tot.linked += j.linkedExisting; tot.creds.push(...j.creds);
-      if (!j.remaining || (!j.created && !j.linkedExisting)) break;
-    }
-    $('pgSug').innerHTML = `<div class="ok">اتعمل ${tot.created} حساب ولي أمر جديد${tot.linked ? ` واتربط ${tot.linked} على حسابات موجودة` : ''}.</div>` +
-      (tot.creds.length ? '<p style="margin-top:10px"><b>حمّل بيانات الدخول دلوقتي</b>، كلمات السر مش هتظهر تاني: <button class="mini" id="pgCred" type="button">تحميل Excel</button></p>' : '');
-    if (tot.creds.length) $('pgCred').onclick = async () => {
-      const X = await XLS(); if (!X) return; const wb = X.utils.book_new();
-      X.utils.book_append_sheet(wb, X.utils.aoa_to_sheet([['ولي الأمر','اسم المستخدم','كلمة السر','الأولاد'], ...tot.creds.map(c => [c.fullName, c.username, c.password, c.kids])]), 'أولياء الأمور');
-      X.writeFile(wb, 'PPS_parents_credentials.xlsx');
-    };
-    loadParents();
-  } catch (x) { b.disabled = false; b.textContent = 'إنشاء الحسابات تلقائي'; alert(x.message); }
-}
-function renderPcKids() {
-  $('pcKids').innerHTML = PCK.map((k, i) => `<span class="tag teacher chip">${esc(k.name)}<button type="button" class="x" data-rk="${i}" aria-label="إزالة">×</button></span>`).join('') || '<small>لسه ما ربطتش أي طالب</small>';
-}
-function openPc(p, pre) {
-  pre = pre || {}; pcId = p ? p.userId : '';
-  PCK = (p ? p.kids : (pre.kids || [])).map(k => ({id: k.id, name: k.name}));
-  $('pcTitle').textContent = p ? 'تعديل ولي أمر' : 'ولي أمر جديد';
-  $('pcName').value = p ? p.fullName : (pre.name || ''); $('pcUser').value = p ? p.username : (pre.username || ''); $('pcPhone').value = p ? p.phone : (pre.phone || '');
-  $('pcPw').value = p ? '' : rnd6(); $('pcPwL').textContent = p ? 'كلمة سر جديدة (سيبها فاضية لو مش عايز تغيّرها)' : 'كلمة السر (6 أحرف أو أرقام على الأقل)';
-  $('pcSq').value = ''; $('pcRes').innerHTML = ''; $('pcErr').classList.add('hide'); $('pcOk').innerHTML = ''; $('pcSave').disabled = false; renderPcKids(); $('pcDlg').showModal();
-}
-$('pcClose').onclick = () => $('pcDlg').close();
-$('pcKids').onclick = e => { const b = e.target.closest('[data-rk]'); if (b) { PCK.splice(+b.dataset.rk, 1); renderPcKids(); } };
-let pcT; $('pcSq').oninput = () => { clearTimeout(pcT); pcT = setTimeout(async () => {
-  const q = $('pcSq').value.trim(); if (!q) { $('pcRes').innerHTML = ''; return; }
-  const j = await api('searchStudents', {q}); if (!j.ok) { $('pcRes').innerHTML = `<div class="empty">${esc(j.error)}</div>`; return; }
-  const list = j.students.filter(s => !PCK.some(k => k.id === s.id));
-  $('pcRes').innerHTML = list.length ? list.map(s => `<div class="ri pk" data-add="${esc(s.id)}" data-nm="${esc(s.name)}"><span>${esc(s.name)} <small>${esc(s.classLabel)}${s.guardian ? ' · ولي الأمر: ' + esc(s.guardian) : ''}</small></span><button type="button" class="mini">إضافة</button></div>`).join('') : '<div class="empty">مفيش نتائج</div>';
-}, 250); };
-$('pcRes').onclick = e => { const r = e.target.closest('[data-add]'); if (!r) return; PCK.push({id: r.dataset.add, name: r.dataset.nm}); r.remove(); renderPcKids(); };
-$('pcForm').onsubmit = async e => {
-  e.preventDefault(); const er = $('pcErr'), b = $('pcSave'); er.classList.add('hide'); b.disabled = true;
-  try {
-    const pw = $('pcPw').value.trim(), j = await api('saveParent', {userId: pcId || undefined, fullName: $('pcName').value, username: $('pcUser').value, phone: $('pcPhone').value, password: pw, kids: PCK.map(k => k.id)});
-    if (!j.ok) throw new Error(j.error);
-    $('pcOk').innerHTML = pcId ? '<div class="ok">تم حفظ التعديل</div>' : `<div class="ok">تم إنشاء الحساب.<br>اسم المستخدم: <b dir="ltr">${esc($('pcUser').value)}</b> · كلمة السر: <b dir="ltr">${esc(pw)}</b><br><small>سجّلها وادّيها لولي الأمر، مش هتظهر تاني.</small></div>`;
-    loadParents(); loadSuggest();
-  } catch (x) { er.textContent = x.message; er.classList.remove('hide'); b.disabled = false; }
-};
-
 /* ---------- بوابة ولي الأمر (قراءة فقط) ---------- */
 let PV = [], PVI = 0;
 $('out4').onclick = () => logout();
@@ -1310,7 +1209,8 @@ function etab(t) {
 }
 async function loadEmpHome() {
   try { const j = await api('empHome'); if (!j.ok) throw new Error(j.error); EMPD = j;
-    $('lfCode').value = j.emp.code; $('lfName').value = j.emp.name; $('lfJob').value = j.emp.job; renderSched(); }
+    $('lfCode').value = j.emp.code; $('lfName').value = j.emp.name; $('lfJob').value = j.emp.job; renderSched();
+    $('lfBtn').disabled = !j.emp.code; $('lfMsg').innerHTML = j.emp.code ? '' : '<div class="err">كود الموظف بتاعك مش مسجل لسه، فمش هتقدر تطلب إجازة. كلّم الإدارة.</div>'; }
   catch (x) { $('esBody').innerHTML = `<div class="err">${esc(x.message)}</div>`; }
 }
 function renderSched() {
@@ -1370,48 +1270,6 @@ $('lvRows').onclick = async e => {
   b.disabled = true; const j = await api('decideLeave', {id: b.dataset.id, decision: b.dataset.dec, note}); if (!j.ok) alert(j.error); loadLvAdmin();
 };
 
-/* ---------- إدارة الموظفين (صلاحية employees.manage) ---------- */
-let EML = [];
-async function loadEmployees() {
-  $('hrRows').innerHTML = '<tr><td colspan="8" class="empty">جاري التحميل...</td></tr>';
-  try { const j = await api('listEmployees', {q: $('hrQ').value.trim()}); if (!j.ok) throw new Error(j.error);
-    EML = j.rows || []; $('hrCount').textContent = `(${j.total})`;
-    $('hrSug').innerHTML = j.unlinkedTotal ? `<div class="panel" style="margin-bottom:14px"><b>${j.unlinkedTotal} حساب مدرس لسه مش مسجل كموظف</b>
-      <p style="color:var(--mut);margin:6px 0">${(j.unlinked || []).map(x => esc(x.name)).join('، ')}${j.unlinkedTotal > 12 ? ' ...' : ''}<br>تسجيلهم كموظفين بيفتحلهم تبويب الحصص وطلب الإجازة، وبيظهروا في جدول الحصص.</p>
-      <button class="btn" id="hrAuto" type="button" style="width:auto;margin:0;padding:10px 18px">تسجيلهم كلهم كموظفين</button></div>` : '';
-    $('hrRows').innerHTML = EML.length ? EML.map(x => `<tr><td>${esc(x.code)}</td><td>${esc(x.name)}</td><td>${esc(x.job)}</td><td dir="ltr" style="text-align:start">${esc(x.email)}</td><td dir="ltr" style="text-align:start">${esc(x.username)}</td><td>${ROLE[x.role] || '—'}</td>
-      <td>${x.status === 'active' ? 'نشط' : '<span class="tag off">موقوف</span>'}</td>
-      <td><button class="mini" data-ee="${esc(x.userId)}">تعديل</button>${canRoleUI(x.role) ? ` <button class="mini" data-es="${esc(x.userId)}" data-st="${x.status === 'active' ? 'inactive' : 'active'}">${x.status === 'active' ? 'إيقاف' : 'تفعيل'}</button>` : ''}</td></tr>`).join('')
-      + (j.total > 80 ? '<tr><td colspan="8" class="empty">معروض أول 80. استخدم البحث</td></tr>' : '')
-      : '<tr><td colspan="8" class="empty">لسه مفيش موظفين. اضغط "موظف جديد"</td></tr>'; }
-  catch (x) { $('hrRows').innerHTML = `<tr><td colspan="8" class="empty" style="color:#a11d1d">${esc(x.message)}</td></tr>`; }
-}
-let hrT; $('hrQ').oninput = () => { clearTimeout(hrT); hrT = setTimeout(loadEmployees, 300); };
-$('hrSug').onclick = async e => { if (!e.target.closest('#hrAuto')) return; e.target.closest('#hrAuto').disabled = true; const j = await api('autoEmployees', {}); if (!j.ok) alert(j.error); loadEmployees(); };
-$('hrRows').onclick = async e => {
-  const be = e.target.closest('[data-ee]'); if (be) return openEm(EML.find(x => x.userId === be.dataset.ee));
-  const bs = e.target.closest('[data-es]'); if (!bs) return; bs.disabled = true;
-  const j = await api('setStatus', {userId: bs.dataset.es, status: bs.dataset.st}); if (!j.ok) alert(j.error); loadEmployees();
-};
-$('hrNew').onclick = () => openEm(null);
-function openEm(x) {
-  $('emUid').value = x ? x.userId : ''; $('emTitle').textContent = x ? 'تعديل موظف' : 'موظف جديد';
-  $('emName').value = x ? x.name : ''; $('emUser').value = x ? x.username : ''; $('emUser').disabled = !!x; $('emRoleBox').classList.toggle('hide', !!x); $('emRole').value = 'teacher';
-  $('emPw').value = x ? '' : rnd6(); $('emPwL').textContent = x ? 'كلمة سر جديدة (سيبها فاضية لو مش عايز تغيّرها)' : 'كلمة السر (6 أحرف أو أرقام على الأقل)';
-  $('emJob').value = x ? x.job : ''; $('emCode').value = x ? x.code : ''; $('emEmail').value = x ? x.email : ''; $('emPhone').value = x ? x.phone : '';
-  $('emErr').classList.add('hide'); $('emOk').innerHTML = ''; $('emSave').disabled = false; $('emDlg').showModal();
-}
-$('emClose').onclick = () => $('emDlg').close();
-$('emForm').onsubmit = async e => {
-  e.preventDefault(); const er = $('emErr'), b = $('emSave'), uid = $('emUid').value; er.classList.add('hide'); b.disabled = true;
-  try { const pw = $('emPw').value.trim();
-    const j = await api('saveEmployee', {userId: uid || undefined, fullName: $('emName').value, username: $('emUser').value, password: pw, role: $('emRole').value, job: $('emJob').value, code: $('emCode').value, email: $('emEmail').value, phone: $('emPhone').value});
-    if (!j.ok) throw new Error(j.error);
-    $('emOk').innerHTML = uid ? '<div class="ok">تم حفظ التعديل</div>' : `<div class="ok">تم إنشاء الحساب.<br>اسم المستخدم: <b dir="ltr">${esc($('emUser').value)}</b> · كلمة السر: <b dir="ltr">${esc(pw || j.password)}</b><br><small>سجّلها وادّيها للموظف، مش هتظهر تاني.</small></div>`;
-    loadEmployees(); if (uid) b.disabled = false;
-  } catch (x) { er.textContent = x.message; er.classList.remove('hide'); b.disabled = false; }
-};
-
 /* ---------- جدول الحصص (شبكة لكل فصل) ---------- */
 let SHD = null, SLOT = null;
 function fillShClass() {
@@ -1429,7 +1287,7 @@ function renderSchedGrid() {
   if (!SHD) return; const days = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس'].concat($('shSat').checked ? ['السبت'] : []);
   const maxSlot = Math.max(0, ...SHD.slots.map(s => s.period)), n = Math.min(12, Math.max(+$('shPer').value || 7, maxSlot)), by = {};
   SHD.slots.forEach(s => by[s.day + '|' + s.period] = s);
-  if (!SHD.teachers.length) $('shMsg').innerHTML = '<div class="err">مفيش مدرسين مسجلين كموظفين. سجّلهم من تبويب الموظفين الأول.</div>';
+  if (!SHD.teachers.length) $('shMsg').innerHTML = '<div class="err">مفيش مدرسين نشطين. ضيفهم من تبويب المستخدمين الأول.</div>';
   let t = '<thead><tr><th>الحصة</th>' + days.map(d => `<th>${d}</th>`).join('') + '</tr></thead><tbody>';
   for (let p = 1; p <= n; p++) t += `<tr><th>${p}</th>` + days.map(d => { const s = by[d + '|' + p];
     return `<td><button class="mini" style="width:100%;min-height:46px;${s ? 'background:#eaf3ff;border-color:#9ec1f0' : ''}" data-day="${d}" data-p="${p}">${s ? `<b>${esc(s.subject)}</b><br><small>${esc(s.teacher)}</small>` : '+'}</button></td>`; }).join('') + '</tr>';
@@ -1453,6 +1311,61 @@ async function saveSlot(clear) {
 }
 $('slForm').onsubmit = e => { e.preventDefault(); saveSlot(false); };
 $('slClear').onclick = () => saveSlot(true);
+
+/* ---------- المستخدمين: كل الأدوار في مكان واحد (وظيفة + أولاد + اقتراحات أولياء الأمور) ---------- */
+const rnd6 = () => String(Math.floor(100000 + Math.random() * 900000));
+const empHTML = () => `<h4 style="margin-top:14px">بيانات الوظيفة</h4><small>اكتب كود البصمة عشان الموظف يقدر يطلب إجازة، والمدرس بيشوف حصصه من غير كود كمان.</small>
+  <div class="pgrid"><div><label>كود الموظف (كود البصمة)</label><input data-ef="code" dir="ltr"></div><div><label>الوظيفة</label><input data-ef="job" placeholder="مثال: مدرس رياضيات، سكرتير"></div><div><label>الإيميل (اختياري)</label><input data-ef="email" dir="ltr"></div></div>`;
+const getEmp = id => Object.fromEntries([...$(id).querySelectorAll('[data-ef]')].map(x => [x.dataset.ef, x.value.trim()]));
+const setEmp = (id, p) => $(id).querySelectorAll('[data-ef]').forEach(x => x.value = (p && p[x.dataset.ef]) || '');
+const KP = {ak: [], ek: []};
+const kidsHTML = p => `<label>الأولاد المربوطين</label><div id="${p}Kids" style="min-height:30px"></div><label>إضافة طالب</label><input id="${p}Sq" placeholder="ابحث باسم الطالب أو اسم المستخدم أو الكود أو اسم ولي الأمر"><div class="scroll" id="${p}Res"></div>`;
+function renderKids(p) { $(p + 'Kids').innerHTML = KP[p].map((k, i) => `<span class="tag teacher chip">${esc(k.name)}<button type="button" class="x" data-rk="${i}" aria-label="إزالة">×</button></span>`).join('') || '<small>لسه ما ربطتش أي طالب</small>'; }
+['ak','ek'].forEach(p => {
+  $(p === 'ak' ? 'aKidsBox' : 'eKidsBox').innerHTML = kidsHTML(p); renderKids(p);
+  $(p + 'Kids').onclick = e => { const b = e.target.closest('[data-rk]'); if (b) { KP[p].splice(+b.dataset.rk, 1); renderKids(p); } };
+  let t; $(p + 'Sq').oninput = () => { clearTimeout(t); t = setTimeout(async () => {
+    const q = $(p + 'Sq').value.trim(); if (!q) { $(p + 'Res').innerHTML = ''; return; }
+    const j = await api('searchStudents', {q}); if (!j.ok) { $(p + 'Res').innerHTML = `<div class="empty">${esc(j.error)}</div>`; return; }
+    const list = j.students.filter(s => !KP[p].some(k => k.id === s.id));
+    $(p + 'Res').innerHTML = list.length ? list.map(s => `<div class="ri pk" data-add="${esc(s.id)}" data-nm="${esc(s.name)}"><span>${esc(s.name)} <small>${esc(s.classLabel)}${s.guardian ? ' · ولي الأمر: ' + esc(s.guardian) : ''}</small></span><button type="button" class="mini">إضافة</button></div>`).join('') : '<div class="empty">مفيش نتائج</div>';
+  }, 250); };
+  $(p + 'Res').onclick = e => { const r = e.target.closest('[data-add]'); if (!r) return; KP[p].push({id: r.dataset.add, name: r.dataset.nm}); r.remove(); renderKids(p); };
+});
+$('aEmp').innerHTML = empHTML(); $('eEmp').innerHTML = empHTML();
+let SG = [];
+async function loadSuggest() {
+  const box = $('pgSug'); box.innerHTML = '';
+  try { const j = await api('parentSuggestions'); if (!j.ok || !j.totalKids) return;
+    box.innerHTML = `<div class="panel" style="margin-bottom:14px"><b>${j.totalKids} طالب لسه مش مربوطين بولي أمر</b> <small>(${j.totalGroups} رقم موبايل مختلف)</small>
+      <p style="color:var(--mut);margin:6px 0">الإنشاء التلقائي بيعمل حساب لكل رقم موبايل ولي أمر (اسم المستخدم هو الرقم وكلمة السر عشوائية) وبيربط الإخوات بحساب واحد.</p>
+      <button class="btn" id="pgAuto" type="button" style="width:auto;margin:0;padding:10px 18px">إنشاء حسابات أولياء الأمور تلقائي</button>
+      ${j.groups.length ? `<h4 style="margin:14px 0 4px">إخوات محتمَلين (${j.groups.length})</h4>` + j.groups.slice(0, 10).map((g, i) => `<div class="ri"><span>${g.kids.map(k => esc(k.name)).join(' + ')} <small dir="ltr">${esc(g.phone)}</small></span><button class="mini" data-sg="${i}" type="button">تعبئة النموذج</button></div>`).join('') : ''}</div>`;
+    SG = j.groups; $('pgAuto').onclick = autoAll;
+  } catch (x) {}
+}
+$('pgSug').onclick = e => { const b = e.target.closest('[data-sg]'); if (!b) return; const g = SG[+b.dataset.sg], f = $('addForm');
+  f.role.value = 'parent'; f.role.onchange(); f.fullName.value = g.guardian || ''; f.username.value = g.phone; f.phone.value = g.phone; f.password.value = rnd6(); KP.ak = g.kids.map(k => ({id: k.id, name: k.name})); renderKids('ak'); f.scrollIntoView({behavior: 'smooth', block: 'center'}); };
+async function autoAll() {
+  if (!confirm('هيتعمل حساب ولي أمر لكل رقم موبايل ولي أمر متسجل للطلاب، ويتربط الإخوات تلقائي. كلمات السر بتظهر مرة واحدة بس. تكمّل؟')) return;
+  const b = $('pgAuto'), tot = {created: 0, linked: 0, creds: []}; b.disabled = true;
+  try {
+    for (let n = 0; n < 40; n++) {
+      b.textContent = `جاري الإنشاء... (${tot.created})`;
+      const j = await api('autoParents', {}); if (!j.ok) throw new Error(j.error);
+      tot.created += j.created; tot.linked += j.linkedExisting; tot.creds.push(...j.creds);
+      if (!j.remaining || (!j.created && !j.linkedExisting)) break;
+    }
+    $('pgSug').innerHTML = `<div class="ok">اتعمل ${tot.created} حساب ولي أمر جديد${tot.linked ? ` واتربط ${tot.linked} على حسابات موجودة` : ''}.</div>` +
+      (tot.creds.length ? '<p style="margin-top:10px"><b>حمّل بيانات الدخول دلوقتي</b>، كلمات السر مش هتظهر تاني: <button class="mini" id="pgCred" type="button">تحميل Excel</button></p>' : '');
+    if (tot.creds.length) $('pgCred').onclick = async () => {
+      const X = await XLS(); if (!X) return; const wb = X.utils.book_new();
+      X.utils.book_append_sheet(wb, X.utils.aoa_to_sheet([['ولي الأمر','اسم المستخدم','كلمة السر','الأولاد'], ...tot.creds.map(c => [c.fullName, c.username, c.password, c.kids])]), 'أولياء الأمور');
+      X.writeFile(wb, 'PPS_parents_credentials.xlsx');
+    };
+    loadAdmin();
+  } catch (x) { b.disabled = false; b.textContent = 'إنشاء حسابات أولياء الأمور تلقائي'; alert(x.message); }
+}
 
 /* شريط أخطاء واضح لو حصل خطأ غير متوقع في الصفحة (بيساعد في تحديد المشكلة بالظبط) */
 function showErr(msg) {
